@@ -1,15 +1,15 @@
 -- This file was automatically generated for the LuaDist project.
 
 package = 'validate-args'
-version = '1.5.2-1'
+version = '1.5.4-1'
 -- LuaDist source
 source = {
-  tag = "1.5.2-1",
+  tag = "1.5.4-1",
   url = "git://github.com/LuaDist-testing/validate-args.git"
 }
 -- Original source
 -- source = {
---   url = "https://bitbucket.org/djerius/validate.args/downloads/validate-args-1.5.2.tar.gz"
+--   url = "https://bitbucket.org/djerius/validate.args/downloads/validate-args-1.5.4.tar.gz"
 -- }
 
 description = {

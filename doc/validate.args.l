@@ -124,7 +124,7 @@
 .\" ========================================================================
 .\"
 .IX Title "validate.args l"
-.TH validate.args l "2011-09-22" " " " "
+.TH validate.args l "2012-01-12" " " " "
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -453,11 +453,11 @@ specifications passed to \fBvalidate\fR.
 If an element is \fIin\fR a vtable and the vtable has \f(CW\*(C`ordered\*(C'\fR set,
 this specifies the \*(L"weight\*(R" of the item; elements with smaller weights will be
 processed before elements with larger weights.
-.IP "precall" 4
-.IX Item "precall"
+.IP "before" 4
+.IX Item "before"
 .PD 0
-.IP "postcall" 4
-.IX Item "postcall"
+.IP "after" 4
+.IX Item "after"
 .PD
 Functions to be called for each element before and after
 validation.  They are called with two arguments: the passed element
@@ -468,14 +468,17 @@ arguments, \f(CW\*(C`true\*(C'\fR and the new value, else it should return \f(CW
 Please note:
 .RS 4
 .IP "\(bu" 4
-If an error occurs during validation, the \f(CW\*(C`postcall\*(C'\fR function
+If an error occurs during validation, the \f(CW\*(C`after\*(C'\fR function
 will not be called.
 .IP "\(bu" 4
-Specification validation is done before the \f(CW\*(C`precall\*(C'\fR function is
+Specification validation is done before the \f(CW\*(C`before\*(C'\fR function is
 invoked.  If a specification is invalid neither callback is invoked.
 .IP "\(bu" 4
 The functions are called at the table level for elements which are
 vtables.
+.IP "\(bu" 4
+These were previously named \f(CW\*(C`precall\*(C'\fR and \f(CW\*(C`postcall\*(C'\fR.  These
+names are \fB\s-1DEPRECATED\s0\fR.
 .RE
 .RS 4
 .RE
@@ -791,6 +794,19 @@ There are a few options which affect the validation process.  How they
 are specifed depends upon whether the procedural or object-oriented
 interfaces are used; see \*(L"Procedural interface\*(R" and \*(L"Object
 oriented interface\*(R" for more details.
+.IP "before" 4
+.IX Item "before"
+This specifies a function which is called with the input data prior to
+any validation.  The data are passed as a table, which may be
+modified.  The function should return a boolean indicating success or
+failure; in the latter case it should also return an error mesage.
+.IP "after" 4
+.IX Item "after"
+This specifies a function which is called with the completely
+validated data prior to returning to the calling routine.  The data
+are passed as a table, which may be modified.  The function should
+return a boolean indicating success or failure; in the latter case it
+should also return an error mesage.
 .IP "check_spec" 4
 .IX Item "check_spec"
 By default the passed validation specification is not itself checked
@@ -1221,7 +1237,7 @@ non-negative integers.
 Diab Jerius, <djerius@cfa.harvard.edu>
 .SH "COPYRIGHT AND LICENSE"
 .IX Header "COPYRIGHT AND LICENSE"
-Copyright (C) 2010 by the Smithsonian Astrophysical Observatory
+Copyright (C) 2010\-2011 by the Smithsonian Astrophysical Observatory
 .PP
 This software is released under the \s-1GNU\s0 General Public License.
 You may find a copy at <http://www.fsf.org/copyleft/gpl.html>.

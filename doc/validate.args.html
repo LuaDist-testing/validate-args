@@ -369,9 +369,9 @@ specifications passed to <strong>validate</strong>.</p>
 this specifies the &quot;weight&quot; of the item; elements with smaller weights will be
 processed before elements with larger weights.</p>
 </dd>
-<dt><strong><a name="precall" class="item">precall</a></strong></dt>
+<dt><strong><a name="before" class="item">before</a></strong></dt>
 
-<dt><strong><a name="postcall" class="item">postcall</a></strong></dt>
+<dt><strong><a name="after" class="item">after</a></strong></dt>
 
 <dd>
 <p>Functions to be called for each element before and after
@@ -382,16 +382,20 @@ arguments, <code>true</code> and the new value, else it should return <code>fals
 <p>Please note:</p>
 <ul>
 <li>
-<p>If an error occurs during validation, the <a href="#postcall"><code>postcall</code></a> function
+<p>If an error occurs during validation, the <a href="#after"><code>after</code></a> function
 will not be called.</p>
 </li>
 <li>
-<p>Specification validation is done before the <a href="#precall"><code>precall</code></a> function is
+<p>Specification validation is done before the <a href="#before"><code>before</code></a> function is
 invoked.  If a specification is invalid neither callback is invoked.</p>
 </li>
 <li>
 <p>The functions are called at the table level for elements which are
 vtables.</p>
+</li>
+<li>
+<p>These were previously named <code>precall</code> and <code>postcall</code>.  These
+names are <strong>DEPRECATED</strong>.</p>
 </li>
 </ul>
 </dd>
@@ -714,6 +718,23 @@ may be specified.  As a complicated example:</p>
 are specifed depends upon whether the procedural or object-oriented
 interfaces are used; see <a href="#procedural_interface">Procedural interface</a> and <a href="#object_oriented_interface">Object oriented interface</a> for more details.</p>
 <dl>
+<dt><strong>before</strong></dt>
+
+<dd>
+<p>This specifies a function which is called with the input data prior to
+any validation.  The data are passed as a table, which may be
+modified.  The function should return a boolean indicating success or
+failure; in the latter case it should also return an error mesage.</p>
+</dd>
+<dt><strong>after</strong></dt>
+
+<dd>
+<p>This specifies a function which is called with the completely
+validated data prior to returning to the calling routine.  The data
+are passed as a table, which may be modified.  The function should
+return a boolean indicating success or failure; in the latter case it
+should also return an error mesage.</p>
+</dd>
 <dt><strong><a name="check_spec" class="item">check_spec</a></strong></dt>
 
 <dd>
@@ -1132,7 +1153,7 @@ non-negative integers.</p>
 </p>
 <hr />
 <h1><a name="copyright_and_license">COPYRIGHT AND LICENSE</a></h1>
-<p>Copyright (C) 2010 by the Smithsonian Astrophysical Observatory</p>
+<p>Copyright (C) 2010-2011 by the Smithsonian Astrophysical Observatory</p>
 <p>This software is released under the GNU General Public License.
 You may find a copy at <a href="http://www.fsf.org/copyleft/gpl.html">http://www.fsf.org/copyleft/gpl.html</a>.</p>
 

@@ -1,3 +1,21 @@
+1.5.4:
+
+[BUG FIX]
+
+* remove debug code left in source which caused failure
+
+1.5.3:
+
+[ENHANCEMENTS]
+
+* added new validation options, "before", and "after" to provide
+  access to the complete data before and after validation
+
+[DEPRECATIONS]
+
+* the precoll and postcoll specification options are now named "before"
+  and "after"; the old names still work for now.
+
 1.5.2:
 
 [ENHANCEMENTS]
