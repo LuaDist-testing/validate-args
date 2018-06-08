@@ -321,7 +321,8 @@ BUILT_SOURCES =
 # extra files to add to the distribution
 
 # extra files to add to the distribution
-EXTRA_DIST = validate.args.pod $(PODS:%=%$(POD_SFX))
+EXTRA_DIST = validate.args.pod validate.inplace.pod \
+	$(PODS:%=%$(POD_SFX))
 
 # Files tha make built but that one would want to rebuild
 MOSTLYCLEANFILES = 
@@ -362,7 +363,7 @@ dist_pdf_DATA = $(POD_PDF)
 # currently, only section l man pages are supported.
 dist_manl_MANS = validate.args.l
 POD_SFX = .pod
-PODS = validate.args
+PODS = validate.args validate.inplace
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

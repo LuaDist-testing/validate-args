@@ -174,9 +174,9 @@ BUILT_SOURCES =
 # extra files to add to the distribution
 
 # extra files to add to the distribution
-EXTRA_DIST = constraints.lua deffunc.lua driver.lua excludes.lua \
-	mutate.lua named.lua nested.lua positional.lua requires.lua \
-	special.lua vtypes.lua
+EXTRA_DIST = constraints.lua callback.lua defaults.lua deffunc.lua \
+	driver.lua excludes.lua inplace.lua mutate.lua named.lua \
+	nested.lua positional.lua requires.lua special.lua vtypes.lua
 
 # Files tha make built but that one would want to rebuild
 MOSTLYCLEANFILES = 

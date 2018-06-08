@@ -1,16 +1,8 @@
--- This file was automatically generated for the LuaDist project.
-
 package = 'validate-args'
-version = '1.0.1-1'
--- LuaDist source
+version = '1.2.4-1'
 source = {
-  tag = "1.0.1-1",
-  url = "git://github.com/LuaDist-testing/validate-args.git"
+  url = "https://bitbucket.org/djerius/validate.args/downloads/validate-args-1.2.4.tar.gz"
 }
--- Original source
--- source = {
---   url = "https://bitbucket.org/djerius/validate.args/downloads/validate-args-1.0.1.tar.gz"
--- }
 
 description = {
    summary = "Function argument validation",

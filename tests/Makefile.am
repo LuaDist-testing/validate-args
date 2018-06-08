@@ -13,9 +13,12 @@ BUILT_SOURCES           +=
 # extra files to add to the distribution
 EXTRA_DIST              +=		\
 			constraints.lua	\
+			callback.lua	\
+			defaults.lua	\
 			deffunc.lua	\
 			driver.lua	\
 			excludes.lua	\
+			inplace.lua	\
 			mutate.lua	\
 			named.lua	\
 			nested.lua	\

@@ -22,10 +22,18 @@
 	<ul>
 
 		<li><a href="#validation_specifications">Validation Specifications</a></li>
+		<li><a href="#callback_arguments">Callback arguments</a></li>
 		<li><a href="#mutating_validation_specifications">Mutating Validation Specifications</a></li>
 		<li><a href="#groups_of_arguments">Groups of Arguments</a></li>
 		<li><a href="#validation_options">Validation Options</a></li>
-		<li><a href="#functions">Functions</a></li>
+		<li><a href="#object_oriented_interface">Object oriented interface</a></li>
+		<ul>
+
+			<li><a href="#constructors">Constructors</a></li>
+			<li><a href="#methods">Methods</a></li>
+		</ul>
+
+		<li><a href="#procedural_interface">Procedural interface</a></li>
 	</ul>
 
 	<li><a href="#examples">EXAMPLES</a></li>
@@ -48,16 +56,30 @@
 <pre>
   va = require('validate.args')</pre>
 <pre>
+  -- set some options which will affect
+  -- all procedural calls
+  va.opts{ options }</pre>
+<pre>
+  -- Procedural interface</pre>
+<pre>
   -- foo( a, b )
   func foo( ... )
     local spec = { &lt;specifications&gt; }
     local ok, a, b = va.validate( spec, ... )
   end</pre>
 <pre>
-  --- goo( c, d )
+  -- goo( c, d )
   func goo( ... )
     local spec = { &lt;specifications&gt; }
     local ok, c, d = va.validate( options, spec, ... )
+  end</pre>
+<pre>
+  -- Object based interface
+  func foo( ... )
+    local spec = { &lt;specifications&gt; }
+    local vo = va:new()
+    vo:setopts{ ... }
+    local ok, a, b = vo:validate( spec, ... )
   end</pre>
 <p>
 </p>
@@ -65,11 +87,14 @@
 <h1><a name="description">DESCRIPTION</a></h1>
 <p><strong>validate.args</strong> validates that a function's arguments meet certain
 specifications.  Both scalar and table arguments are validated, and
-validation of nested tables is supported.  <strong>validate.args</strong> provides
-two main validation functions, <a href="#validate"><code>validate()</code></a> and <a href="#validate_opts"><code>validate_opts()</code></a>.
-They differ in that <a href="#validate"><code>validate()</code></a> uses global settings for options
-which control the validation process while <code>validat_opts()</code>
-allows setting those options for a specific validation.</p>
+validation of nested tables is supported.</p>
+<p><strong>validate.args</strong> provides both procedural and object-oriented
+interfaces.  The significant difference between the interfaces is that
+the procedural interface may be influenced by global settings while
+the object-oriented interface keeps those settings local to each
+object.  Objects may themselves be cloned, allowing for nested
+hierarchies of validation specifications.  Changes to parent objects
+do not affect child objects, and vice-versa.</p>
 <p>Positional, named, and mixed positional and named arguments are
 supported.  Positional arguments may be converted to named arguments
 for uniformity of access (see <a href="#validation_options">Validation Options</a>).  Each argument
@@ -95,8 +120,8 @@ one element per argument:</p>
 <pre>
   goo{ a = 3, b = 'n' }</pre>
 <p>Named arguments are passed as a single table to the function (notice
-the use of the <code>{}</code> syntactic sugar in the function invocation).  Their validation
-specifications are passed as a table:</p>
+the <code>{}</code> syntactic sugar in the function invocation).
+Their validation specifications are passed as a table:</p>
 <pre>
  { arg1_name = { arg1 specification },
    arg2_name = { arg2 specification }
@@ -123,13 +148,16 @@ on the named arguments, typically using the <a href="#vtable"><code>vtable</code
 </p>
 <h2><a name="validation_specifications">Validation Specifications</a></h2>
 <p>A validation specification is a set of constraints which an argument
-must meet.  In most cases the specification is encoded in a table, where each
-key-value pair represents a type of constraint and its
-parameters.   The specification may also be specified by a function; see <a href="#mutating_validation_specifications">Mutating Validation Specifications</a>.</p>
+must meet.  In most cases the specification is encoded in a table,
+where each key-value pair represents a type of constraint and its
+parameters.  The specification may also be specified by a function
+(see <a href="#mutating_validation_specifications">Mutating Validation Specifications</a>).</p>
 <p>Multiple constraints may be specified for each argument. There are no
 guarantees as to the order in which the constraints are applied.</p>
 <p>The caller may provide constraints which modify the passed arguments;
 these must not expect a particular sequence of operation.</p>
+<p>The caller may provide callbacks which are called pre- and post-
+validation.  These may modify the argument values.</p>
 <p>The following constraint types are recognized:</p>
 <dl>
 <dt><strong><a name="optional" class="item">optional</a></strong></dt>
@@ -146,10 +174,10 @@ as <a href="#nil"><code>nil</code></a> in the function call, e.g.</p>
 <dt><strong><a name="default" class="item">default</a></strong></dt>
 
 <dd>
-<p>This provides a value for the argument if it is not specified, as
-well as indicating that the argument is optional.  This may be a function,
-which will be called if a default value is required.  The function
-should return two values:</p>
+<p>This provides a value for an argument whose value was not specified,
+as well as indicating that the argument is optional.  This may be a
+function, which will be called if a default value is required. The
+function is passed a single argument, a table (see <a href="#callback_arguments">Callback Arguments</a> for its contents). The function should return two values:</p>
 <ol>
 <li>
 <p>a boolean indicating success or failure;</p>
@@ -158,6 +186,9 @@ should return two values:</p>
 <p>the default value upon success, an error message upon failure</p>
 </li>
 </ol>
+<p>If no default value is specified for a table argument with a vtable
+constraint, the nested argument specifications in the vtable are
+scanned for defaults.</p>
 </dd>
 <dt><strong><a name="type" class="item">type</a></strong></dt>
 
@@ -261,8 +292,9 @@ one <em>must</em> be specified in addition to the current argument:</p>
 
 <dd>
 <p>This specifies a function which is called to validate the argument.
-It is called with a single argument, the passed argument
-value. It must return two values:</p>
+It is called with two arguments, the passed argument value and a table
+(see <a href="#callback_arguments">Callback Arguments</a> for its contents).  It must return two
+values:</p>
 <ol>
 <li>
 <p>a boolean indicating success or failure;</p>
@@ -284,7 +316,7 @@ value. It must return two values:</p>
 
 <dd>
 <p>This is used to validate the contents of an argument which is a table.
-It's value may be either:</p>
+Its value may be either:</p>
 <dl>
 <dt><strong><a name="a_table_of_specifications" class="item">a table of specifications</a></strong></dt>
 
@@ -312,19 +344,48 @@ in the argument table. For example, to validate a call such as</p>
 <dt><strong><a name="a_function" class="item">a function</a></strong></dt>
 
 <dd>
-<p>The function should take a single parameter - the passed argument
-<em>value</em> - and must return two values:</p>
+<p>The function is called with two arguments: the passed argument value,
+and a table (see <a href="#callback_arguments">Callback Arguments</a> for its contents) and must
+return two values:</p>
 <ol>
 <li>
 <p>a boolean indicating success or failure;</p>
 </li>
 <li>
-<p>Upon success, a table of validation specifcations. Upon failure, an error message.
-See <a href="#examples">Examples</a> for an example of this in use.</p>
+<p>Upon success, a table of validation specifications. Upon failure, an
+error message.  See <a href="#examples">Examples</a> for an example of this in use.</p>
 </li>
 </ol>
+<p>This function may be called with the argument value equal to <a href="#nil"><code>nil</code></a> if
+no argument value was specified.</p>
 </dd>
 </dl>
+</dd>
+<dt><strong><a name="precall" class="item">precall</a></strong></dt>
+
+<dt><strong><a name="postcall" class="item">postcall</a></strong></dt>
+
+<dd>
+<p>Functions to be called for each argument before and after argument
+validation.  They are called with two arguments: the passed argument
+value, and a table (see <a href="#callback_arguments">Callback Arguments</a> for its contents).  If
+the function wishes to modify the argument value it should return two
+arguments, <code>true</code> and the new value, else it should return <code>false</code>.</p>
+<p>Please note:</p>
+<ul>
+<li>
+<p>If an error occurs during validation, the <a href="#postcall"><code>postcall</code></a> function
+will not be called.</p>
+</li>
+<li>
+<p>Specification validation is done before the <a href="#precall"><code>precall</code></a> function is
+invoked.  If a specification is invalid neither callback is invoked.</p>
+</li>
+<li>
+<p>The functions are called at the table level for arguments which are
+vtables.</p>
+</li>
+</ul>
 </dd>
 <dt><strong><a name="name" class="item">name</a></strong></dt>
 
@@ -333,6 +394,32 @@ See <a href="#examples">Examples</a> for an example of this in use.</p>
 validation option is <em>true</em>, then the argument will be assigned this
 name in the returned argument table.  See <a href="#validation_options">Validation Options</a> for
 more information.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="callback_arguments">Callback arguments</a></h2>
+<p>Several of the validation specification entries take callback
+functions.  The last argument passed to these functions is a table
+containing the following named entries:</p>
+<dl>
+<dt><strong><a name="va" class="item">va</a></strong></dt>
+
+<dd>
+<p>The validation object.  In the case that the procedural interface is
+being used, this will be a default object.</p>
+</dd>
+<dt><strong>name</strong></dt>
+
+<dd>
+<p>The fully qualified name of the argument stored as a
+<code>validate.args.Name</code> object.  Use the <code>tostring()</code> function (or
+the similarly named method) to stringify it.</p>
+</dd>
+<dt><strong><a name="spec" class="item">spec</a></strong></dt>
+
+<dd>
+<p>The specification table for the argument. <strong>Do not modify this</strong>.</p>
 </dd>
 </dl>
 <p>
@@ -407,10 +494,9 @@ may be specified.  As a complicated example:</p>
 <p>
 </p>
 <h2><a name="validation_options">Validation Options</a></h2>
-<p>There are a few options which affect the validation process.  These
-may be set for individual validations using <strong>validate_opts()</strong>, or may
-be set globally for validations done via <strong>validate()</strong> using
-<strong>opts()</strong>.</p>
+<p>There are a few options which affect the validation process.  How they
+are specifed depends upon whether the procedural or object-oriented
+interfaces are used; see <a href="#procedural_interface">Procedural interface</a> and <a href="#object_oriented_interface">Object oriented interface</a> for more details.</p>
 <dl>
 <dt><strong><a name="check_spec" class="item">check_spec</a></strong></dt>
 
@@ -490,24 +576,116 @@ validation specification are passed through.  For example:</p>
   c = 3</pre>
 <p>This defaults to <code>false</code>.</p>
 </dd>
-<dt><strong><a name="baseoptions" class="item">baseOptions</a></strong></dt>
+</dl>
+<p>
+</p>
+<h2><a name="object_oriented_interface">Object oriented interface</a></h2>
+<p>
+</p>
+<h3><a name="constructors">Constructors</a></h3>
+<p>There are two available constructors: a constructor based upon class defaults
+and one based upon an object:</p>
+<dl>
+<dt><strong><a name="class_constructor" class="item">Class constructor</a></strong></dt>
 
 <dd>
-<p>This option is useful only for the validation functions which take an
-options table (such as validate_opts()). If <code>true</code>, any options which
-are not specified in the options table will be set from the global
-options table as modified by the <strong>opts()</strong> function.  Normally they
-are set from the default options values.</p>
-<p>This defaults to <code>false</code>.</p>
+<pre>
+  va = require( 'validate.args' )
+  vobj = va:new( args )</pre>
+<p>This constructs a new validation object based upon either the class
+defaults or the current defaults (as set by the <strong>opts()</strong> and
+<strong>add_type()</strong> functions).  It takes a table of named arguments:</p>
+<dl>
+<dt><strong><a name="use_current_options" class="item">use_current_options</a></strong></dt>
+
+<dd>
+<p>If true, the values of the object's validation options are taken from
+the current option values set by the <a href="#opts"><code>opts()</code></a> function.  If false
+(the default), the options have the default values specified above.</p>
+</dd>
+<dt><strong><a name="use_current_types" class="item">use_current_types</a></strong></dt>
+
+<dd>
+<p>If true, the validation types are taken from
+the current values set by the <a href="#add_type"><code>add_type()</code></a> function.  If false
+(the default), the options have the default values specified above.</p>
+</dd>
+<dt><strong><a name="use_current" class="item">use_current</a></strong></dt>
+
+<dd>
+<p>This is equivalent to specifying both <a href="#use_current_types"><code>use_current_types</code></a> and
+<a href="#use_current_options"><code>use_current_options</code></a> to the same value.</p>
+</dd>
+</dl>
+</dd>
+<dt><strong><a name="object_constructor" class="item">Object constructor</a></strong></dt>
+
+<dd>
+<pre>
+  -- create and specialize an object
+  va = require( 'validate.args' )
+  vobj = va:new( args )
+  vobj:add_type( ... )
+  vobj.opts.xxx = yyy</pre>
+<pre>
+  -- now create an independent copy of it
+  nobj = vobj:new()</pre>
+<p>This creates an independent copy of the <code>vobj</code> object, including all
+of its options and types.  This is useful for nested specialization of
+types and options.</p>
 </dd>
 </dl>
 <p>
 </p>
-<h2><a name="functions">Functions</a></h2>
+<h3><a name="methods">Methods</a></h3>
 <dl>
-<dt><strong><a name="validate" class="item">validate( specs, ... )</a></strong></dt>
+<dt><strong><a name="setopts" class="item">setopts</a></strong></dt>
 
 <dd>
+<pre>
+  vobj:setopts{ opt1 = val1, opt2 = val2 }
+  -- or
+  vobj.opts.opt1 = val1
+  vobj.opts.opt2 = val2</pre>
+<p>Set the specified validation options (See <a href="#validation_options">Validation Options</a> for
+the valid options).  These hold for this object only. An error will be
+thrown if the specified options are not recognized.</p>
+</dd>
+<dt><strong><a name="add_type" class="item">add_type</a></strong></dt>
+
+<dd>
+<pre>
+   vobj:add_type( type_name, func )</pre>
+<p>Register a validation function for the named type which
+will be accepted by the <strong>type</strong> validation attribute.</p>
+<p>The function will be passed the argument to validate.  It should
+return two values:</p>
+<ol>
+<li>
+<p>a boolean indicating success or failure;</p>
+</li>
+<li>
+<p>the (possibly modified) argument upon success, an error message upon failure</p>
+</li>
+</ol>
+<p>For example, the following</p>
+<pre>
+  vobj:add_type( 'mytype', function( arg )
+                          if 'number' == type(arg) then
+                            return true, 3 * arg
+                          else
+                            return false, 'not a number between 2 &amp; 3'
+                          end
+                      end
+          )</pre>
+<p>adds a new type called <code>mytype</code> which accepts only numbers between 2
+and 3 (exclusive) and modifies the argument by multiplying it by 3.</p>
+</dd>
+<dt><strong><a name="validate" class="item">validate</a></strong></dt>
+
+<dd>
+<pre>
+  vobj:validate( specs ... )</pre>
 <p>Validate the passed argument list against the specifications.  It
 returns a list of values.  The first value is a boolean indicating
 whether or not the validation succeeded.</p>
@@ -516,51 +694,65 @@ values of the arguments (possibly modified during the validation).</p>
 <p>If validation failed, the second value is a string indicating what
 caused the failure.</p>
 </dd>
-<dt><strong><a name="validate_opts" class="item">validate_opts( opts, specs, ... )</a></strong></dt>
+<dt><strong><a name="validate_tbl" class="item">validate_tbl</a></strong></dt>
 
 <dd>
-<p>Validate the passed argument list against the specifications.  The
-validation workflow may be altered via options passed via the <a href="#opts"><code>opts</code></a>
-argument.  The return arguments are the same as <strong>validate</strong>.</p>
-<p>Those options which are not set in <a href="#opts"><code>opts</code></a> are set to the default
-values.  If instead they should be set to the values which were
-specified by the <strong>opts()</strong> function, set the special option
-<a href="#baseoptions"><code>baseOptions</code></a> to <code>true</code>.</p>
-</dd>
-<dt><strong><a name="validate_tbl" class="item">validate_tbl( opts, specs, tble )</a></strong></dt>
-
-<dd>
-<p>Validate the contents of the passed table against the specifications.
-The validation workflow may be altered via options passed via the
-<a href="#opts"><code>opts</code></a> argument.  The return arguments are the same as <strong>validate</strong>.</p>
-<p>Those options which are not set in <a href="#opts"><code>opts</code></a> are set to the default
-values.  If instead they should be set to the values which were
-specified by the <strong>opts()</strong> function, set the special option
-<a href="#baseoptions"><code>baseOptions</code></a> to <code>true</code>.</p>
-</dd>
-<dt><strong><a name="add_type" class="item">add_type( type_name, func )</a></strong></dt>
-
-<dd>
-<p>Register a validation function for the named type which
-will be accepted by the <strong>type</strong> validation attribute.</p>
-<p>The function will be passed the argument to validate.  It should return a
-list of values.  The first value is a boolean indicating whether or
-not the validation succeeded.</p>
-<p>Upon success it should return the (possibly modified) argument as the second value.</p>
-<p>For example, the following</p>
 <pre>
-  add_type( 'mytype', function( arg )
-                          return 'number' == type(arg) and  arg &gt; 2 and arg &lt; 3,
-                                 3 * arg
-                           end
-          )</pre>
-<p>adds a new type called <code>mytype</code> which accepts only numbers between 2 and 3 (exclusive)
-and modifies the argument by multiplying it by 3.</p>
+  vobj:validate_tbl( specs, tble )</pre>
+<p>Validate the contents of the passed table against the
+specifications. The return values are the same as for <strong>validate</strong>.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="procedural_interface">Procedural interface</a></h2>
+<dl>
+<dt><strong>validate( specs, ... )</strong></dt>
+
+<dd>
+<pre>
+  validate( specs, ... )</pre>
+<p>Validate the passed argument list against the specifications using the
+current global settings for the validation options.  See the
+documentation for the <a href="#validate"><code>validate()</code></a> method for more details.</p>
+</dd>
+<dt><strong><a name="validate_opts" class="item">validate_opts</a></strong></dt>
+
+<dd>
+<pre>
+  validate_opts( opts, specs, ... )</pre>
+<p>Validate the passed argument list against the specifications using the
+current global settings for the validation options.  Temporary values
+for validations options may be specified with the <a href="#opts"><code>opts</code></a> argument. The
+return values are the same as <strong>validate</strong>.</p>
+</dd>
+<dt><strong>validate_tbl</strong></dt>
+
+<dd>
+<pre>
+  validate_tbl( opts, specs, tble )</pre>
+<p>Validate the contents of the passed table against the specifications
+using the current global settings for the validation
+options. Temporary values for validations options may be specified
+with the <a href="#opts"><code>opts</code></a> argument. The validation workflow may be altered via
+options passed via the <a href="#opts"><code>opts</code></a> argument.  The return values are the
+same as <strong>validate</strong>.</p>
+</dd>
+<dt><strong>add_type</strong></dt>
+
+<dd>
+<pre>
+  add_type( type_name, func )</pre>
+<p>Globally register a validation function for the named type which
+will be accepted by the <strong>type</strong> validation attribute.  See the
+<a href="#add_type"><code>add_type()</code></a> method for more details on the arguments.</p>
+<p>The function will be passed the argument to validate.  It should
+return two values:</p>
 </dd>
 <dt><strong><a name="opts" class="item">opts( <em>table of options</em> )</a></strong></dt>
 
 <dd>
-<p>Set the default values for the passed options.  See <a href="#validation_options">Validation Options</a> for the available options.</p>
+<p>Globally set the values for the passed options.  See <a href="#validation_options">Validation Options</a> for the available options.</p>
 </dd>
 </dl>
 <p>

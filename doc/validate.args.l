@@ -124,7 +124,7 @@
 .\" ========================================================================
 .\"
 .IX Title "validate.args l"
-.TH validate.args l "2011-05-13" " " " "
+.TH validate.args l "2011-06-27" " " " "
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
@@ -136,27 +136,45 @@ validate.args \- validate arguments
 .Vb 1
 \&  va = require(\*(Aqvalidate.args\*(Aq)
 \&
+\&  \-\- set some options which will affect
+\&  \-\- all procedural calls
+\&  va.opts{ options }
+\&
+\&  \-\- Procedural interface
+\&
 \&  \-\- foo( a, b )
 \&  func foo( ... )
 \&    local spec = { <specifications> }
 \&    local ok, a, b = va.validate( spec, ... )
 \&  end
 \&
-\&  \-\-\- goo( c, d )
+\&  \-\- goo( c, d )
 \&  func goo( ... )
 \&    local spec = { <specifications> }
 \&    local ok, c, d = va.validate( options, spec, ... )
+\&  end
+\&
+\&  \-\- Object based interface
+\&  func foo( ... )
+\&    local spec = { <specifications> }
+\&    local vo = va:new()
+\&    vo:setopts{ ... }
+\&    local ok, a, b = vo:validate( spec, ... )
 \&  end
 .Ve
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
 \&\fBvalidate.args\fR validates that a function's arguments meet certain
 specifications.  Both scalar and table arguments are validated, and
-validation of nested tables is supported.  \fBvalidate.args\fR provides
-two main validation functions, \f(CW\*(C`validate()\*(C'\fR and \f(CW\*(C`validate_opts()\*(C'\fR.
-They differ in that \f(CW\*(C`validate()\*(C'\fR uses global settings for options
-which control the validation process while \f(CW\*(C`validat_opts()\*(C'\fR
-allows setting those options for a specific validation.
+validation of nested tables is supported.
+.PP
+\&\fBvalidate.args\fR provides both procedural and object-oriented
+interfaces.  The significant difference between the interfaces is that
+the procedural interface may be influenced by global settings while
+the object-oriented interface keeps those settings local to each
+object.  Objects may themselves be cloned, allowing for nested
+hierarchies of validation specifications.  Changes to parent objects
+do not affect child objects, and vice-versa.
 .PP
 Positional, named, and mixed positional and named arguments are
 supported.  Positional arguments may be converted to named arguments
@@ -185,8 +203,8 @@ one element per argument:
 .Ve
 .Sp
 Named arguments are passed as a single table to the function (notice
-the use of the \f(CW\*(C`{}\*(C'\fR syntactic sugar in the function invocation).  Their validation
-specifications are passed as a table:
+the \f(CW\*(C`{}\*(C'\fR syntactic sugar in the function invocation).
+Their validation specifications are passed as a table:
 .Sp
 .Vb 3
 \& { arg1_name = { arg1 specification },
@@ -216,16 +234,19 @@ on the named arguments, typically using the \f(CW\*(C`vtable\*(C'\fR constraint.
 .SS "Validation Specifications"
 .IX Subsection "Validation Specifications"
 A validation specification is a set of constraints which an argument
-must meet.  In most cases the specification is encoded in a table, where each
-key-value pair represents a type of constraint and its
-parameters.   The specification may also be specified by a function; see \*(L"Mutating
-Validation Specifications\*(R".
+must meet.  In most cases the specification is encoded in a table,
+where each key-value pair represents a type of constraint and its
+parameters.  The specification may also be specified by a function
+(see \*(L"Mutating Validation Specifications\*(R").
 .PP
 Multiple constraints may be specified for each argument. There are no
 guarantees as to the order in which the constraints are applied.
 .PP
 The caller may provide constraints which modify the passed arguments;
 these must not expect a particular sequence of operation.
+.PP
+The caller may provide callbacks which are called pre\- and post\-
+validation.  These may modify the argument values.
 .PP
 The following constraint types are recognized:
 .IP "optional" 4
@@ -242,10 +263,11 @@ as \f(CW\*(C`nil\*(C'\fR in the function call, e.g.
 It defaults to \f(CW\*(C`false\*(C'\fR.  All arguments are required by default.
 .IP "default" 4
 .IX Item "default"
-This provides a value for the argument if it is not specified, as
-well as indicating that the argument is optional.  This may be a function,
-which will be called if a default value is required.  The function
-should return two values:
+This provides a value for an argument whose value was not specified,
+as well as indicating that the argument is optional.  This may be a
+function, which will be called if a default value is required. The
+function is passed a single argument, a table (see \*(L"Callback
+Arguments\*(R" for its contents). The function should return two values:
 .RS 4
 .IP "1." 4
 a boolean indicating success or failure;
@@ -253,6 +275,10 @@ a boolean indicating success or failure;
 the default value upon success, an error message upon failure
 .RE
 .RS 4
+.Sp
+If no default value is specified for a table argument with a vtable
+constraint, the nested argument specifications in the vtable are
+scanned for defaults.
 .RE
 .IP "type" 4
 .IX Item "type"
@@ -352,8 +378,9 @@ See also \*(L"Argument Groups\*(R"
 .IP "vfunc" 4
 .IX Item "vfunc"
 This specifies a function which is called to validate the argument.
-It is called with a single argument, the passed argument
-value. It must return two values:
+It is called with two arguments, the passed argument value and a table
+(see \*(L"Callback Arguments\*(R" for its contents).  It must return two
+values:
 .RS 4
 .IP "1." 4
 a boolean indicating success or failure;
@@ -376,7 +403,7 @@ For example,
 .IP "vtable" 4
 .IX Item "vtable"
 This is used to validate the contents of an argument which is a table.
-It's value may be either:
+Its value may be either:
 .RS 4
 .IP "a table of specifications" 4
 .IX Item "a table of specifications"
@@ -409,17 +436,47 @@ which will return
 .Ve
 .IP "a function" 4
 .IX Item "a function"
-The function should take a single parameter \- the passed argument
-\&\fIvalue\fR \- and must return two values:
+The function is called with two arguments: the passed argument value,
+and a table (see \*(L"Callback Arguments\*(R" for its contents) and must
+return two values:
 .RS 4
 .IP "1." 4
 a boolean indicating success or failure;
 .IP "2." 4
-Upon success, a table of validation specifcations. Upon failure, an error message.
-See \*(L"Examples\*(R" for an example of this in use.
+Upon success, a table of validation specifications. Upon failure, an
+error message.  See \*(L"Examples\*(R" for an example of this in use.
+.RE
+.RS 4
+.Sp
+This function may be called with the argument value equal to \f(CW\*(C`nil\*(C'\fR if
+no argument value was specified.
+.RE
 .RE
 .RS 4
 .RE
+.IP "precall" 4
+.IX Item "precall"
+.PD 0
+.IP "postcall" 4
+.IX Item "postcall"
+.PD
+Functions to be called for each argument before and after argument
+validation.  They are called with two arguments: the passed argument
+value, and a table (see \*(L"Callback Arguments\*(R" for its contents).  If
+the function wishes to modify the argument value it should return two
+arguments, \f(CW\*(C`true\*(C'\fR and the new value, else it should return \f(CW\*(C`false\*(C'\fR.
+.Sp
+Please note:
+.RS 4
+.IP "\(bu" 4
+If an error occurs during validation, the \f(CW\*(C`postcall\*(C'\fR function
+will not be called.
+.IP "\(bu" 4
+Specification validation is done before the \f(CW\*(C`precall\*(C'\fR function is
+invoked.  If a specification is invalid neither callback is invoked.
+.IP "\(bu" 4
+The functions are called at the table level for arguments which are
+vtables.
 .RE
 .RS 4
 .RE
@@ -429,6 +486,23 @@ A name for a positional argument.  If specified and the \f(CW\*(C`named\*(C'\fR
 validation option is \fItrue\fR, then the argument will be assigned this
 name in the returned argument table.  See \*(L"Validation Options\*(R" for
 more information.
+.SS "Callback arguments"
+.IX Subsection "Callback arguments"
+Several of the validation specification entries take callback
+functions.  The last argument passed to these functions is a table
+containing the following named entries:
+.IP "va" 4
+.IX Item "va"
+The validation object.  In the case that the procedural interface is
+being used, this will be a default object.
+.IP "name" 4
+.IX Item "name"
+The fully qualified name of the argument stored as a
+\&\f(CW\*(C`validate.args.Name\*(C'\fR object.  Use the \f(CW\*(C`tostring()\*(C'\fR function (or
+the similarly named method) to stringify it.
+.IP "spec" 4
+.IX Item "spec"
+The specification table for the argument. \fBDo not modify this\fR.
 .SS "Mutating Validation Specifications"
 .IX Subsection "Mutating Validation Specifications"
 A validation specification is usually (as documented above) a table of
@@ -511,10 +585,10 @@ ensures that only one of the two following situations occurs:
 .Ve
 .SS "Validation Options"
 .IX Subsection "Validation Options"
-There are a few options which affect the validation process.  These
-may be set for individual validations using \fB\f(BIvalidate_opts()\fB\fR, or may
-be set globally for validations done via \fB\f(BIvalidate()\fB\fR using
-\&\fB\f(BIopts()\fB\fR.
+There are a few options which affect the validation process.  How they
+are specifed depends upon whether the procedural or object-oriented
+interfaces are used; see \*(L"Procedural interface\*(R" and \*(L"Object
+oriented interface\*(R" for more details.
 .IP "check_spec" 4
 .IX Item "check_spec"
 By default the passed validation specification is not itself checked
@@ -602,19 +676,113 @@ would result in
 .Ve
 .Sp
 This defaults to \f(CW\*(C`false\*(C'\fR.
-.IP "baseOptions" 4
-.IX Item "baseOptions"
-This option is useful only for the validation functions which take an
-options table (such as \fIvalidate_opts()\fR). If \f(CW\*(C`true\*(C'\fR, any options which
-are not specified in the options table will be set from the global
-options table as modified by the \fB\f(BIopts()\fB\fR function.  Normally they
-are set from the default options values.
+.SS "Object oriented interface"
+.IX Subsection "Object oriented interface"
+\fIConstructors\fR
+.IX Subsection "Constructors"
+.PP
+There are two available constructors: a constructor based upon class defaults
+and one based upon an object:
+.IP "Class constructor" 4
+.IX Item "Class constructor"
+.Vb 2
+\&  va = require( \*(Aqvalidate.args\*(Aq )
+\&  vobj = va:new( args )
+.Ve
 .Sp
-This defaults to \f(CW\*(C`false\*(C'\fR.
-.SS "Functions"
-.IX Subsection "Functions"
-.IP "validate( specs, ... )" 4
-.IX Item "validate( specs, ... )"
+This constructs a new validation object based upon either the class
+defaults or the current defaults (as set by the \fB\f(BIopts()\fB\fR and
+\&\fB\f(BIadd_type()\fB\fR functions).  It takes a table of named arguments:
+.RS 4
+.IP "use_current_options" 4
+.IX Item "use_current_options"
+If true, the values of the object's validation options are taken from
+the current option values set by the \f(CW\*(C`opts()\*(C'\fR function.  If false
+(the default), the options have the default values specified above.
+.IP "use_current_types" 4
+.IX Item "use_current_types"
+If true, the validation types are taken from
+the current values set by the \f(CW\*(C`add_type()\*(C'\fR function.  If false
+(the default), the options have the default values specified above.
+.IP "use_current" 4
+.IX Item "use_current"
+This is equivalent to specifying both \f(CW\*(C`use_current_types\*(C'\fR and
+\&\f(CW\*(C`use_current_options\*(C'\fR to the same value.
+.RE
+.RS 4
+.RE
+.IP "Object constructor" 4
+.IX Item "Object constructor"
+.Vb 5
+\&  \-\- create and specialize an object
+\&  va = require( \*(Aqvalidate.args\*(Aq )
+\&  vobj = va:new( args )
+\&  vobj:add_type( ... )
+\&  vobj.opts.xxx = yyy
+\&
+\&  \-\- now create an independent copy of it
+\&  nobj = vobj:new()
+.Ve
+.Sp
+This creates an independent copy of the \f(CW\*(C`vobj\*(C'\fR object, including all
+of its options and types.  This is useful for nested specialization of
+types and options.
+.PP
+\fIMethods\fR
+.IX Subsection "Methods"
+.IP "setopts" 4
+.IX Item "setopts"
+.Vb 4
+\&  vobj:setopts{ opt1 = val1, opt2 = val2 }
+\&  \-\- or
+\&  vobj.opts.opt1 = val1
+\&  vobj.opts.opt2 = val2
+.Ve
+.Sp
+Set the specified validation options (See \*(L"Validation Options\*(R" for
+the valid options).  These hold for this object only. An error will be
+thrown if the specified options are not recognized.
+.IP "add_type" 4
+.IX Item "add_type"
+.Vb 1
+\&   vobj:add_type( type_name, func )
+.Ve
+.Sp
+Register a validation function for the named type which
+will be accepted by the \fBtype\fR validation attribute.
+.Sp
+The function will be passed the argument to validate.  It should
+return two values:
+.RS 4
+.IP "1." 4
+a boolean indicating success or failure;
+.IP "2." 4
+the (possibly modified) argument upon success, an error message upon failure
+.RE
+.RS 4
+.Sp
+For example, the following
+.Sp
+.Vb 8
+\&  vobj:add_type( \*(Aqmytype\*(Aq, function( arg )
+\&                          if \*(Aqnumber\*(Aq == type(arg) then
+\&                            return true, 3 * arg
+\&                          else
+\&                            return false, \*(Aqnot a number between 2 & 3\*(Aq
+\&                          end
+\&                      end
+\&          )
+.Ve
+.Sp
+adds a new type called \f(CW\*(C`mytype\*(C'\fR which accepts only numbers between 2
+and 3 (exclusive) and modifies the argument by multiplying it by 3.
+.RE
+.IP "validate" 4
+.IX Item "validate"
+.Vb 1
+\&  vobj:validate( specs ... )
+.Ve
+.Sp
 Validate the passed argument list against the specifications.  It
 returns a list of values.  The first value is a boolean indicating
 whether or not the validation succeeded.
@@ -624,52 +792,62 @@ values of the arguments (possibly modified during the validation).
 .Sp
 If validation failed, the second value is a string indicating what
 caused the failure.
-.IP "validate_opts( opts, specs, ... )" 4
-.IX Item "validate_opts( opts, specs, ... )"
-Validate the passed argument list against the specifications.  The
-validation workflow may be altered via options passed via the \f(CW\*(C`opts\*(C'\fR
-argument.  The return arguments are the same as \fBvalidate\fR.
-.Sp
-Those options which are not set in \f(CW\*(C`opts\*(C'\fR are set to the default
-values.  If instead they should be set to the values which were
-specified by the \fB\f(BIopts()\fB\fR function, set the special option
-\&\f(CW\*(C`baseOptions\*(C'\fR to \f(CW\*(C`true\*(C'\fR.
-.IP "validate_tbl( opts, specs, tble )" 4
-.IX Item "validate_tbl( opts, specs, tble )"
-Validate the contents of the passed table against the specifications.
-The validation workflow may be altered via options passed via the
-\&\f(CW\*(C`opts\*(C'\fR argument.  The return arguments are the same as \fBvalidate\fR.
-.Sp
-Those options which are not set in \f(CW\*(C`opts\*(C'\fR are set to the default
-values.  If instead they should be set to the values which were
-specified by the \fB\f(BIopts()\fB\fR function, set the special option
-\&\f(CW\*(C`baseOptions\*(C'\fR to \f(CW\*(C`true\*(C'\fR.
-.IP "add_type( type_name, func )" 4
-.IX Item "add_type( type_name, func )"
-Register a validation function for the named type which
-will be accepted by the \fBtype\fR validation attribute.
-.Sp
-The function will be passed the argument to validate.  It should return a
-list of values.  The first value is a boolean indicating whether or
-not the validation succeeded.
-.Sp
-Upon success it should return the (possibly modified) argument as the second value.
-.Sp
-For example, the following
-.Sp
-.Vb 5
-\&  add_type( \*(Aqmytype\*(Aq, function( arg )
-\&                          return \*(Aqnumber\*(Aq == type(arg) and  arg > 2 and arg < 3,
-\&                                 3 * arg
-\&                           end
-\&          )
+.IP "validate_tbl" 4
+.IX Item "validate_tbl"
+.Vb 1
+\&  vobj:validate_tbl( specs, tble )
 .Ve
 .Sp
-adds a new type called \f(CW\*(C`mytype\*(C'\fR which accepts only numbers between 2 and 3 (exclusive)
-and modifies the argument by multiplying it by 3.
+Validate the contents of the passed table against the
+specifications. The return values are the same as for \fBvalidate\fR.
+.SS "Procedural interface"
+.IX Subsection "Procedural interface"
+.IP "validate( specs, ... )" 4
+.IX Item "validate( specs, ... )"
+.Vb 1
+\&  validate( specs, ... )
+.Ve
+.Sp
+Validate the passed argument list against the specifications using the
+current global settings for the validation options.  See the
+documentation for the \f(CW\*(C`validate()\*(C'\fR method for more details.
+.IP "validate_opts" 4
+.IX Item "validate_opts"
+.Vb 1
+\&  validate_opts( opts, specs, ... )
+.Ve
+.Sp
+Validate the passed argument list against the specifications using the
+current global settings for the validation options.  Temporary values
+for validations options may be specified with the \f(CW\*(C`opts\*(C'\fR argument. The
+return values are the same as \fBvalidate\fR.
+.IP "validate_tbl" 4
+.IX Item "validate_tbl"
+.Vb 1
+\&  validate_tbl( opts, specs, tble )
+.Ve
+.Sp
+Validate the contents of the passed table against the specifications
+using the current global settings for the validation
+options. Temporary values for validations options may be specified
+with the \f(CW\*(C`opts\*(C'\fR argument. The validation workflow may be altered via
+options passed via the \f(CW\*(C`opts\*(C'\fR argument.  The return values are the
+same as \fBvalidate\fR.
+.IP "add_type" 4
+.IX Item "add_type"
+.Vb 1
+\&  add_type( type_name, func )
+.Ve
+.Sp
+Globally register a validation function for the named type which
+will be accepted by the \fBtype\fR validation attribute.  See the
+\&\f(CW\*(C`add_type()\*(C'\fR method for more details on the arguments.
+.Sp
+The function will be passed the argument to validate.  It should
+return two values:
 .IP "opts( \fItable of options\fR )" 4
 .IX Item "opts( table of options )"
-Set the default values for the passed options.  See \*(L"Validation
+Globally set the values for the passed options.  See \*(L"Validation
 Options\*(R" for the available options.
 .SH "EXAMPLES"
 .IX Header "EXAMPLES"

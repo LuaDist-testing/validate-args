@@ -4,6 +4,8 @@ va = require( 'validate.args' )
 validate = va.validate
 validate_opts = va.validate_opts
 
+setup = _G.setup
+
 function test_table_mutation( )
 
    local template =  {
@@ -38,7 +40,7 @@ function test_table_mutation_args( )
 
 
    local ok, foo = validate( { spec }, 3 )
-   assert_true( ok )
+   assert_true( ok, foo )
    assert_equal( 3, foo )
 
    local ok, foo = validate( { spec } )

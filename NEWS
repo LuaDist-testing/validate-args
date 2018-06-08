@@ -1,3 +1,58 @@
+1.2.4 :
+
+[ENHANCEMENTS]
+
+* vfunc callback is passed as an extra argument a table with additional info
+
+* user provided functions may be called prior to and after the validation
+  process for each argument in the validation specification
+
+* new module validate.inplace; provides validation upon assignment of an
+  element in a data structure
+
+1.2.3 :
+
+[BUG FIX]
+
+* default values for vtable arguments are now properly populated
+
+1.2.2 :
+
+[BUG FIX]
+
+* named positional arguments were returned as nil if opts.named = false
+
+1.2.1 :
+
+[OTHER]
+
+* minor documentation fixes
+
+1.2.0 :
+
+[API CHANGE]
+
+* validate_opts: options which are now set reflect the *current*
+  values as set by opts(), not the default values.  the baseOptions
+  option is no longer supported.  Use the new object-oriented
+  interface to duplicate the old functionality
+
+[ENHANCEMENTS]
+
+* validate.args now provides an object-oriented API as well as a
+  procedural API.  This makes it easier to create isolated validation
+  schemes.
+
+
+1.1.0 :
+
+[API CHANGE]
+
+* type check functions may now return an error message upon
+  failure. older code which simply returns the passed argument
+  as the second return value will see that argument output in the
+  error message.  See the updated docs for more information.
+
 1.0.1 :
 
 [ENHANCEMENTS]

@@ -281,7 +281,7 @@ do_subst = sed \
 		  -e 's,[@]srcdir[@],$(srcdir),g'			\
 		  $(DO_SUBST)
 
-LUA_SRCS = args.lua
+LUA_SRCS = args.lua inplace.lua
 sublib = validate
 luasublibdir = $(lualibdir)/$(sublib)
 luacsublibdir = $(luaclibdir)/$(sublib)
