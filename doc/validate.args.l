@@ -124,13 +124,13 @@
 .\" ========================================================================
 .\"
 .IX Title "validate.args l"
-.TH validate.args l "2011-06-27" " " " "
+.TH validate.args l "2011-09-22" " " " "
 .\" For nroff, turn off justification.  Always turn off hyphenation; it makes
 .\" way too many mistakes in technical documents.
 .if n .ad l
 .nh
 .SH "NAME"
-validate.args \- validate arguments
+validate.args \- validate arguments and data structures
 .SH "SYNOPSIS"
 .IX Header "SYNOPSIS"
 .Vb 1
@@ -164,9 +164,9 @@ validate.args \- validate arguments
 .Ve
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
-\&\fBvalidate.args\fR validates that a function's arguments meet certain
-specifications.  Both scalar and table arguments are validated, and
-validation of nested tables is supported.
+\&\fBvalidate.args\fR provides a framework for validating function
+arguments and data structures.  Scalar and (nested) table values as
+well as lists of values of the same type may be validated.
 .PP
 \&\fBvalidate.args\fR provides both procedural and object-oriented
 interfaces.  The significant difference between the interfaces is that
@@ -175,12 +175,11 @@ the object-oriented interface keeps those settings local to each
 object.  Objects may themselves be cloned, allowing for nested
 hierarchies of validation specifications.  Changes to parent objects
 do not affect child objects, and vice-versa.
-.PP
+.SS "Validating Function Arguments"
+.IX Subsection "Validating Function Arguments"
 Positional, named, and mixed positional and named arguments are
 supported.  Positional arguments may be converted to named arguments
-for uniformity of access (see \*(L"Validation Options\*(R").  Each argument
-has a validation specification which provides the validation
-constraints.
+for uniformity of access (see \*(L"Validation Options\*(R").
 .IP "Positional arguments" 4
 .IX Item "Positional arguments"
 .Vb 1
@@ -231,40 +230,53 @@ are passed as a list, one per argument:
 .Sp
 The validation specification for the table specifies the constraints
 on the named arguments, typically using the \f(CW\*(C`vtable\*(C'\fR constraint.
+.SS "Validating Data Structures"
+.IX Subsection "Validating Data Structures"
+Validation of data structures is very similar to validating function
+arguments.  The base structure operated upon is a table whose elements
+may be positional (indexed with integers) or named (indexed with
+anything else) or both.  The layout of the validation specifications
+are identical to those described above. Typically the \fBvalidate_tbl\fR
+method or function is used.
 .SS "Validation Specifications"
 .IX Subsection "Validation Specifications"
-A validation specification is a set of constraints which an argument
+A validation specification is a set of constraints which a value
 must meet.  In most cases the specification is encoded in a table,
 where each key-value pair represents a type of constraint and its
 parameters.  The specification may also be specified by a function
 (see \*(L"Mutating Validation Specifications\*(R").
 .PP
-Multiple constraints may be specified for each argument. There are no
+\&\fBNote:\fR The documentation below refers to validation of both function
+arguments and data structures. When the term \fIelement\fR is used it
+refers to either a function argument or to an element of a data
+structure.
+.PP
+Multiple constraints may be specified for each element. There are no
 guarantees as to the order in which the constraints are applied.
 .PP
-The caller may provide constraints which modify the passed arguments;
+The caller may provide constraints which modify the passed elements;
 these must not expect a particular sequence of operation.
 .PP
 The caller may provide callbacks which are called pre\- and post\-
-validation.  These may modify the argument values.
+validation.  These may modify the elements.
 .PP
-The following constraint types are recognized:
+The following specification parameters are recognized:
 .IP "optional" 4
 .IX Item "optional"
-This is a boolean attribute which, if true, indicates that the argument
-need not be present.  Positional as well as named arguments may be
-optional; if they are not at the end of the list they may be specified
-as \f(CW\*(C`nil\*(C'\fR in the function call, e.g.
+This is a boolean attribute which, if true, indicates that the element
+need not be present.  Positional (as well as named elements) may be
+optional; if they are not at the end of the list they must be specified
+as \f(CW\*(C`nil\*(C'\fR in the list of input values, e.g.
 .Sp
 .Vb 1
-\&  foo( nil, 3 )
+\&  nil, 3
 .Ve
 .Sp
-It defaults to \f(CW\*(C`false\*(C'\fR.  All arguments are required by default.
+This defaults to \f(CW\*(C`false\*(C'\fR.  All elements are required by default.
 .IP "default" 4
 .IX Item "default"
-This provides a value for an argument whose value was not specified,
-as well as indicating that the argument is optional.  This may be a
+This provides the default value when a element was not specified,
+as well as indicating that the element is optional.  This may be a
 function, which will be called if a default value is required. The
 function is passed a single argument, a table (see \*(L"Callback
 Arguments\*(R" for its contents). The function should return two values:
@@ -276,75 +288,45 @@ the default value upon success, an error message upon failure
 .RE
 .RS 4
 .Sp
-If no default value is specified for a table argument with a vtable
-constraint, the nested argument specifications in the vtable are
-scanned for defaults.
+If no default value is specified for a table element with a vtable
+constraint, the nested specifications in the vtable are scanned for defaults.
+.Sp
+Note that if nested specifications are scanned for defaults and not all
+of those specificatons provide defaults, an error will be thrown. To
+avoid this, use \f(CW\*(C`default_is_nil\*(C'\fR
 .RE
+.IP "default_is_nil" 4
+.IX Item "default_is_nil"
+This indicates that the default value for an element is \f(CW\*(C`nil\*(C'\fR.
+This is primarily used to indicate that nested vtable specifications
+should not be scanned for defaults.
 .IP "type" 4
 .IX Item "type"
-This specifies the expected type of argument. It may be either a single
-type or a list of types:
-.Sp
-.Vb 2
-\&  type = \*(Aqnumber\*(Aq
-\&  type = { \*(Aqnumber\*(Aq, \*(Aqboolean\*(Aq }
-.Ve
-.Sp
-Types are specified as strings, with the following types available:
-.RS 4
-.IP "'nil'" 4
-.IX Item "'nil'"
-.PD 0
-.IP "'number'" 4
-.IX Item "'number'"
-.IP "'string'" 4
-.IX Item "'string'"
-.IP "'boolean'" 4
-.IX Item "'boolean'"
-.IP "'table'" 4
-.IX Item "'table'"
-.IP "'function'" 4
-.IX Item "'function'"
-.IP "'thread'" 4
-.IX Item "'thread'"
-.IP "'userdata'" 4
-.IX Item "'userdata'"
-.PD
-These are the built-in types as returned by the Lua \fBtype\fR function.
-.IP "'posnum'" 4
-.IX Item "'posnum'"
-The argument must be a number greater than zero.
-.IP "'zposnum'" 4
-.IX Item "'zposnum'"
-The argument must be a number greater than or equal to zero.
-.IP "'posint'" 4
-.IX Item "'posint'"
-The argument must be an integer greater than zero.
-.IP "'zposint'" 4
-.IX Item "'zposint'"
-The argument must be an integer greater than or equal to zero.
-.RE
-.RS 4
-.Sp
-To add additional types see the \fBadd_type\fR function.
-.RE
+This specifies the expected type of the element. It may be either a
+single type or a list of types.  See \*(L"Element Types\*(R" for more
+information.  This is optional.
 .IP "enum" 4
 .IX Item "enum"
-This specifies one or more explicit values which the argument may
+This specifies one or more explicit values which the element may
 take. It may be either a single value or a list of values:
 .Sp
 .Vb 2
 \&  enum = 33
 \&  enum = { \*(Aqa\*(Aq, 33, \*(Aqb\*(Aq }
 .Ve
+.IP "allow_nil" 4
+.IX Item "allow_nil"
+This is a boolean and indicates that the element may be nil.  This
+only pertains to positional elements.
 .IP "not_nil" 4
 .IX Item "not_nil"
-This is a boolean and indicates that the value must not be nil.  This
-only pertains to positional arguments.
+This is a boolean and indicates that the element must not be nil.  This
+only pertains to positional elements. \fI\s-1THIS\s0 \s-1IS\s0 \s-1DEPRECATED\s0\fR.  It defaults
+to \f(CW\*(C`true\*(C'\fR.
 .IP "requires" 4
 .IX Item "requires"
-This lists the names of one or more arguments which \fImust\fR be specified
-in addition to the current argument.  The value is either a single
+This lists the names of one or more elements which \fImust\fR be specified
+in addition to the current element.  The value is either a single
 name or a list of names:
 .Sp
 .Vb 2
@@ -352,11 +334,11 @@ name or a list of names:
 \&  requires = { \*(Aqarg3\*(Aq, \*(Aqarg4\*(Aq }
 .Ve
 .Sp
-See also \*(L"Argument Groups\*(R"
+See also \*(L"Element Groups\*(R"
 .IP "excludes" 4
 .IX Item "excludes"
-This lists the names of one or more arguments which \fImay not\fR be specified
-in addition to the current argument.  The value is either a single
+This lists the names of one or more elements which \fImay not\fR be specified
+in addition to the current element.  The value is either a single
 name or a list of names:
 .Sp
 .Vb 2
@@ -364,28 +346,28 @@ name or a list of names:
 \&  excludes = { \*(Aqarg3\*(Aq, \*(Aqarg4\*(Aq }
 .Ve
 .Sp
-See also \*(L"Argument Groups\*(R"
+See also \*(L"Element Groups\*(R"
 .IP "one_of" 4
 .IX Item "one_of"
-This provides a list of names of other arguments of which exactly
-one \fImust\fR be specified in addition to the current argument:
+This provides a list of names of other elements of which exactly
+one \fImust\fR be specified in addition to the current element:
 .Sp
 .Vb 1
 \&  one_of = { \*(Aqarg3\*(Aq, \*(Aqarg4\*(Aq }
 .Ve
 .Sp
-See also \*(L"Argument Groups\*(R"
+See also \*(L"Element Groups\*(R"
 .IP "vfunc" 4
 .IX Item "vfunc"
-This specifies a function which is called to validate the argument.
-It is called with two arguments, the passed argument value and a table
+This specifies a function which is called to validate the element.
+It is called with two arguments, the passed element value and a table
 (see \*(L"Callback Arguments\*(R" for its contents).  It must return two
 values:
 .RS 4
 .IP "1." 4
 a boolean indicating success or failure;
 .IP "2." 4
-the (possibly modified) argument value upon success, an error message upon failure
+the (possibly modified) element value upon success, an error message upon failure
 .RE
 .RS 4
 .Sp
@@ -402,13 +384,13 @@ For example,
 .RE
 .IP "vtable" 4
 .IX Item "vtable"
-This is used to validate the contents of an argument which is a table.
+This is used to validate the contents of an element which is a table.
 Its value may be either:
 .RS 4
 .IP "a table of specifications" 4
 .IX Item "a table of specifications"
 There should be one element in the specification table for each element
-in the argument table. For example, to validate a call such as
+in the element table. For example, to validate a call such as
 .Sp
 .Vb 1
 \&  foo( \*(Aqhello\*(Aq, { nv1 = 3, nv2 = 2 } )
@@ -436,7 +418,7 @@ which will return
 .Ve
 .IP "a function" 4
 .IX Item "a function"
-The function is called with two arguments: the passed argument value,
+The function is called with two arguments: the passed element value,
 and a table (see \*(L"Callback Arguments\*(R" for its contents) and must
 return two values:
 .RS 4
@@ -444,26 +426,43 @@ return two values:
 a boolean indicating success or failure;
 .IP "2." 4
 Upon success, a table of validation specifications. Upon failure, an
-error message.  See \*(L"Examples\*(R" for an example of this in use.
+error message.  See \*(L"\s-1EXAMPLES\s0\*(R" for an example of this in use.
 .RE
 .RS 4
 .Sp
-This function may be called with the argument value equal to \f(CW\*(C`nil\*(C'\fR if
-no argument value was specified.
+This function may be called with the element value equal to \f(CW\*(C`nil\*(C'\fR if
+no element value was specified.
 .RE
 .RE
 .RS 4
 .RE
+.IP "ordered" 4
+.IX Item "ordered"
+If an element is a vtable and this parameter is true, the vtable's elements will
+be processed in the order specified by elements' \f(CW\*(C`order\*(C'\fR parameters.
+.Sp
+This is useful if elements have callback functions which must be called
+in a specific order.
+.Sp
+To specify the \f(CW\*(C`ordered\*(C'\fR attribute for \fIimplicit\fR vtables you must
+use the \f(CW\*(C`ordered\*(C'\fR validation option. Implicit vtables are created for
+the specification passed to \fBvalidate_tbl\fR and for pure named-element
+specifications passed to \fBvalidate\fR.
+.IP "order" 4
+.IX Item "order"
+If an element is \fIin\fR a vtable and the vtable has \f(CW\*(C`ordered\*(C'\fR set,
+this specifies the \*(L"weight\*(R" of the item; elements with smaller weights will be
+processed before elements with larger weights.
 .IP "precall" 4
 .IX Item "precall"
 .PD 0
 .IP "postcall" 4
 .IX Item "postcall"
 .PD
-Functions to be called for each argument before and after argument
-validation.  They are called with two arguments: the passed argument
+Functions to be called for each element before and after
+validation.  They are called with two arguments: the passed element
 value, and a table (see \*(L"Callback Arguments\*(R" for its contents).  If
-the function wishes to modify the argument value it should return two
+the function wishes to modify the element value it should return two
 arguments, \f(CW\*(C`true\*(C'\fR and the new value, else it should return \f(CW\*(C`false\*(C'\fR.
 .Sp
 Please note:
@@ -475,19 +474,190 @@ will not be called.
 Specification validation is done before the \f(CW\*(C`precall\*(C'\fR function is
 invoked.  If a specification is invalid neither callback is invoked.
 .IP "\(bu" 4
-The functions are called at the table level for arguments which are
+The functions are called at the table level for elements which are
 vtables.
 .RE
 .RS 4
 .RE
 .IP "name" 4
 .IX Item "name"
-A name for a positional argument.  If specified and the \f(CW\*(C`named\*(C'\fR
-validation option is \fItrue\fR, then the argument will be assigned this
-name in the returned argument table.  See \*(L"Validation Options\*(R" for
+A name for a positional element.  If specified and the \f(CW\*(C`named\*(C'\fR
+validation option is \fItrue\fR, then the element will be assigned this
+name in the returned table.  See \*(L"Validation Options\*(R" for
 more information.
-.SS "Callback arguments"
-.IX Subsection "Callback arguments"
+.IP "named" 4
+.IX Item "named"
+Indicate that a name should be (or not be) assigned to a positional
+element. This option overrides the validation option of the same name,
+and is useful for control over particular elements.
+.Sp
+This option can only be specified for positional elements in tables,
+not at the top level of the data structure, e.g.
+.Sp
+.Vb 1
+\&  spec = { { name = \*(Aqfoo\*(Aq, named = true } }
+.Ve
+.Sp
+will cause an error to be thrown, while
+.Sp
+.Vb 1
+\&  spec = { data = { vtable = { { name = \*(Aqfoo\*(Aq, named = true } } }}
+.Ve
+.Sp
+is legal.  Use the \f(CW\*(C`named\*(C'\fR validation option to assign names to top
+level positional elements.
+.IP "multiple" 4
+.IX Item "multiple"
+This indicates that the element is a table whose members must
+each meet the validation specifications.  For example, to validate
+a list of positive integers:
+.Sp
+.Vb 1
+\&  { type = \*(Aqposint\*(Aq, multiple = true }
+.Ve
+.Sp
+This parameter may take the following values:
+.RS 4
+.ie n .IP """true"" or ""false""" 4
+.el .IP "\f(CWtrue\fR or \f(CWfalse\fR" 4
+.IX Item "true or false"
+If \f(CW\*(C`true\*(C'\fR, each member of the element table is validated.
+.IP "a table of options" 4
+.IX Item "a table of options"
+In addition to validating the members of the input table, further
+validation is possible.  The following options are recognized:
+.RS 4
+.IP "n" 4
+.IX Item "n"
+This specifies the exact number of members in the element table.  It is optional.
+.IP "min" 4
+.IX Item "min"
+This specifies the required minimum number of members in the element
+table.  It may not be combined with the \fBn\fR option.  It is optional.
+.IP "max" 4
+.IX Item "max"
+This specifies the required maximum number of members in the element
+table.  It may not be combined with the \fBn\fR option.  It is optional.
+.IP "keys" 4
+.IX Item "keys"
+This specifies a validation specification for the \fIkeys\fR in the element table.
+It is optional.
+.Sp
+For example, the following ensures that keys consist only of alphabetical characters:
+.Sp
+.Vb 10
+\&  multiple = {
+\&     keys = {
+\&       vfunc = function( val )
+\&                 if type(val) == \*(Aqstring\*(Aq
+\&                    and val:match( \*(Aq^%a+$\*(Aq ) then
+\&                   return true, val
+\&                 else
+\&                   return false,
+\&                          "only alpha characters allowed"
+\&                 end
+\&               end
+\&         }
+\&  }
+.Ve
+.IP "allow_scalar" 4
+.IX Item "allow_scalar"
+Normally, indicating a multiplicity implies that the element must be a
+table.  This ensures that there is no confusion if the members of that
+table are themselves tables For.  example, is
+.Sp
+.Vb 1
+\&  foo = { a = 2 }
+.Ve
+.Sp
+a table of multiple values (with multiplicity of 1) or is it a single value
+which happens to be a table?
+.Sp
+If the element is a scalar, there is no confusion. If this option is \fBtrue\fR,
+\&\fBvalidate.args\fR will upgrade the element to a table.
+.Sp
+This option defaults to \fBfalse\fR
+.RE
+.RS 4
+.RE
+.RE
+.RS 4
+.RE
+.SS "Element Types"
+.IX Subsection "Element Types"
+\&\fBvalidate.args\fR supports two schemes for specifying element types for the \f(CW\*(C`type\*(C'\fR option:
+\&\fIsimple\fR and \fIinline\fR.
+.PP
+Simple types include the standard Lua types and can be augmented using
+the \fBadd_type\fR function or method.  They are specified using their name (as a string):
+.IP "'number'" 4
+.IX Item "'number'"
+.PD 0
+.IP "'string'" 4
+.IX Item "'string'"
+.IP "'boolean'" 4
+.IX Item "'boolean'"
+.IP "'table'" 4
+.IX Item "'table'"
+.IP "'function'" 4
+.IX Item "'function'"
+.IP "'thread'" 4
+.IX Item "'thread'"
+.IP "'userdata'" 4
+.IX Item "'userdata'"
+.PD
+These are the built-in types as returned by the Lua \fBtype\fR function.
+.IP "'posnum'" 4
+.IX Item "'posnum'"
+The element must be a number greater than zero.
+.IP "'zposnum'" 4
+.IX Item "'zposnum'"
+The element must be a number greater than or equal to zero.
+.IP "'posint'" 4
+.IX Item "'posint'"
+The element must be an integer greater than zero.
+.IP "'zposint'" 4
+.IX Item "'zposint'"
+The element must be an integer greater than or equal to zero.
+.PP
+Inline types are specified as tables of validation  specifications.
+They are a bit more complex.
+.IP "1." 4
+When using inline type specifications, the specifications must be
+passed to the \f(CW\*(C`types\*(C'\fR option as a \fIlist\fR of types, even if there is
+only one specification.
+.IP "2." 4
+Inline types must be given a name.  It should not be the same as
+the name of any simple type.
+.PP
+For example,  here is the type specification for the \fBmultiple\fR option:
+.PP
+.Vb 10
+\&     type = { \*(Aqboolean\*(Aq,
+\&              [\*(Aqmultiple table\*(Aq] = {
+\&                 vtable = {
+\&                    min = { type = \*(Aqzposint\*(Aq, optional = true,
+\&                            excludes = \*(Aqn\*(Aq
+\&                         },
+\&                    max = { type = \*(Aqposint\*(Aq,  optional = true,
+\&                            excludes = \*(Aqn\*(Aq
+\&                         },
+\&                    n   = { type = \*(Aqposint\*(Aq,  optional = true,
+\&                            excludes = { \*(Aqmin\*(Aq, \*(Aqmax\*(Aq }
+\&                         },
+\&                    keys   = { vtable = validate_spec,
+\&                               optional = true
+\&                            },
+\&                    allow_scalar = { type = \*(Aqboolean\*(Aq, default = false },
+\&                 }
+\&              }
+\&           },
+.Ve
+.PP
+It indicates that \fBmultiple\fR may either be a boolean value or a table
+which may have the elements \f(CW\*(C`min\*(C'\fR, \f(CW\*(C`max\*(C'\fR, c<n>, etc.
+.SS "Callback Arguments"
+.IX Subsection "Callback Arguments"
 Several of the validation specification entries take callback
 functions.  The last argument passed to these functions is a table
 containing the following named entries:
@@ -497,29 +667,61 @@ The validation object.  In the case that the procedural interface is
 being used, this will be a default object.
 .IP "name" 4
 .IX Item "name"
-The fully qualified name of the argument stored as a
+The fully qualified name of the element stored as a
 \&\f(CW\*(C`validate.args.Name\*(C'\fR object.  Use the \f(CW\*(C`tostring()\*(C'\fR function (or
 the similarly named method) to stringify it.
 .IP "spec" 4
 .IX Item "spec"
-The specification table for the argument. \fBDo not modify this\fR.
+The specification table for the element. \fBDo not modify this\fR.
+.SS "Catch-all Specifications"
+.IX Subsection "Catch-all Specifications"
+It is possible to provide default specifications for named or
+positional elements in tables.  These are passed as specifications for
+the special names \f(CW%named\fR and \f(CW%pos\fR.  A third special name
+\&\f(CW%default\fR is an alternative which can be used to provide a catch-all
+for all unmatched elements.
+.PP
+The specifications must be functions. They are passed the element name or position and
+its value.  They should return two values,
+.IP "1." 4
+a boolean indicating that the element name or position is acceptable
+.IP "2." 4
+if acceptable, a specification table for the element.
+.PP
+For example, to catch all even numbered positional elements in a table
+after the first two:
+.PP
+.Vb 12
+\&    vtable = {
+\&       { name = "first", type = \*(Aqstring\*(Aq },
+\&       { name = "second", type = \*(Aqtable\*(Aq },
+\&       [%pos] = function (k,v)
+\&                   \-\-only look at even numbered positions
+\&                   if k%2 == 0 then
+\&                     return true, { type = \*(Aqposint\*(Aq }
+\&                   else
+\&                     return false
+\&                   end
+\&                end
+\&    }
+.Ve
 .SS "Mutating Validation Specifications"
 .IX Subsection "Mutating Validation Specifications"
 A validation specification is usually (as documented above) a table of
 constraints.  In the case where the entire validation table must be
 created on the fly the validation specification may be a \fIfunction\fR.
-The function should take a single parameter \- the passed argument
+The function should take a single parameter \- the passed element
 \&\fIvalue\fR \- and must return two values:
 .IP "1." 4
 a boolean indicating success or failure;
 .IP "2." 4
-Upon success, a table of validation specifcations. Upon failure, an error message.
-.SS "Groups of Arguments"
-.IX Subsection "Groups of Arguments"
-Some operations on groups of arguments are possible for named
-arguments.  These are specified as special \*(L"arguments\*(R" in the
+Upon success, a table of validation specifications. Upon failure, an error message.
+.SS "Element Groups"
+.IX Subsection "Element Groups"
+Some operations on groups of elements are possible for named
+elements.  These are specified as special \*(L"names\*(R" in the
 validation specification.  In order to accomodate multiple groups,
-these \*(L"arguments\*(R" take as values a \fIlist of lists\fR,
+these \*(L"names\*(R" take as values a \fIlist of lists\fR,
 .PP
 .Vb 1
 \&  [\*(Aq%one_of\*(Aq] = { { \*(Aqa\*(Aq, \*(Aqb\*(Aq, \*(Aqc\*(Aq } }
@@ -531,7 +733,7 @@ these \*(L"arguments\*(R" take as values a \fIlist of lists\fR,
 \&  [\*(Aq%one_of\*(Aq] = { \*(Aqa\*(Aq, \*(Aqb\*(Aq, \*(Aqc\*(Aq }
 .Ve
 .PP
-in ordeThis allows specifying multiple groups:
+This allows specifying multiple groups:
 .PP
 .Vb 1
 \&  [\*(Aq%one_of\*(Aq] = { { \*(Aqa\*(Aq, \*(Aqb\*(Aq, \*(Aqc\*(Aq } , { \*(Aqd\*(Aq, \*(Aqe\*(Aq, \*(Aqf\*(Aq } }
@@ -539,8 +741,8 @@ in ordeThis allows specifying multiple groups:
 .ie n .IP "%one_of" 4
 .el .IP "\f(CW%one_of\fR" 4
 .IX Item "%one_of"
-This ensures that exactly one argument in a group is specified.  For
-example, say that the caller must provide exactly one of the arguments
+This ensures that exactly one element in a group is specified.  For
+example, say that the caller must provide exactly one of the elements
 \&\f(CW\*(C`arg1\*(C'\fR, \f(CW\*(C`arg2\*(C'\fR, or \f(CW\*(C`arg3\*(C'\fR.  Exclusivity is obtained via
 .Sp
 .Vb 3
@@ -567,7 +769,7 @@ so the above could be rewritten as
 .ie n .IP "%oneplus_of" 4
 .el .IP "\f(CW%oneplus_of\fR" 4
 .IX Item "%oneplus_of"
-This ensures that at least one argument in a group is specified. More
+This ensures that at least one element in a group is specified. More
 may be specified.  As a complicated example:
 .Sp
 .Vb 4
@@ -599,7 +801,7 @@ This defaults to \f(CW\*(C`false\*(C'\fR.
 .IP "error_on_invalid" 4
 .IX Item "error_on_invalid"
 If \f(CW\*(C`true\*(C'\fR, the Lua \fB\f(BIerror()\fB\fR function will be called the case of
-invalid arguments instead of returning a status code and message.
+invalid elements instead of returning a status code and message.
 .Sp
 This defaults to \f(CW\*(C`false\*(C'\fR.
 .IP "error_on_bad_spec" 4
@@ -610,7 +812,7 @@ call to the Lua \fB\f(BIerror()\fB\fR function.
 This defaults to \f(CW\*(C`false\*(C'\fR.
 .IP "named" 4
 .IX Item "named"
-If this is \f(CW\*(C`true\*(C'\fR, positional arguments are returned as a table, with
+If this is \f(CW\*(C`true\*(C'\fR, positional elements are returned as a table, with
 their names given either by the \f(CW\*(C`name\*(C'\fR attribute in the validation
 specification or by their cardinal index in the argument list.
 For example:
@@ -632,7 +834,7 @@ will result in
 This defaults to \f(CW\*(C`false\*(C'\fR.
 .IP "allow_extra" 4
 .IX Item "allow_extra"
-If this is \f(CW\*(C`true\*(C'\fR, then any extra arguments (either named or positional)
+If this is \f(CW\*(C`true\*(C'\fR, then any extra elements (either named or positional)
 which are not mentioned in the validation specification are quietly
 ignored. For example:
 .Sp
@@ -656,7 +858,7 @@ This defaults to \f(CW\*(C`false\*(C'\fR.
 .IP "pass_through" 4
 .IX Item "pass_through"
 If this is \f(CW\*(C`true\*(C'\fR and \f(CW\*(C`allow_extra\*(C'\fR is also \f(CW\*(C`true\*(C'\fR, then any extra
-arguments (either named or positional) which are not mentioned in the
+elements (either named or positional) which are not mentioned in the
 validation specification are passed through.  For example:
 .Sp
 .Vb 5
@@ -676,6 +878,15 @@ would result in
 .Ve
 .Sp
 This defaults to \f(CW\*(C`false\*(C'\fR.
+.IP "udata" 4
+.IX Item "udata"
+This option is used to pass arbitrary data to the callback routines.
+Use the \f(CW\*(C`getopt\*(C'\fR method to retrieve it.
+.IP "ordered" 4
+.IX Item "ordered"
+If this is true, implicit vtables will be processed in order specified
+by their elements' \f(CW\*(C`order\*(C'\fR parameters.  See the documentation
+for the \f(CW\*(C`ordered\*(C'\fR validation specification for more information.
 .SS "Object oriented interface"
 .IX Subsection "Object oriented interface"
 \fIConstructors\fR
@@ -727,6 +938,12 @@ This is equivalent to specifying both \f(CW\*(C`use_current_types\*(C'\fR and
 This creates an independent copy of the \f(CW\*(C`vobj\*(C'\fR object, including all
 of its options and types.  This is useful for nested specialization of
 types and options.
+.Sp
+\&\fBWarning!\fR Only a shallow copy of the objects' validation options is made;
+if any of the option values are tables (e.g. \f(CW\*(C`udata\*(C'\fR) the options in the
+new object will refer to the same tables as in the original object.
+.Sp
+\&\fBDo not rely upon this behavior.\fR
 .PP
 \fIMethods\fR
 .IX Subsection "Methods"
@@ -751,13 +968,13 @@ thrown if the specified options are not recognized.
 Register a validation function for the named type which
 will be accepted by the \fBtype\fR validation attribute.
 .Sp
-The function will be passed the argument to validate.  It should
+The function will be passed the value of the element to validate.  It should
 return two values:
 .RS 4
 .IP "1." 4
 a boolean indicating success or failure;
 .IP "2." 4
-the (possibly modified) argument upon success, an error message upon failure
+the (possibly modified) element value upon success, an error message upon failure
 .RE
 .RS 4
 .Sp
@@ -775,31 +992,39 @@ For example, the following
 .Ve
 .Sp
 adds a new type called \f(CW\*(C`mytype\*(C'\fR which accepts only numbers between 2
-and 3 (exclusive) and modifies the argument by multiplying it by 3.
+and 3 (exclusive) and modifies the element value by multiplying it by 3.
 .RE
 .IP "validate" 4
 .IX Item "validate"
 .Vb 1
-\&  vobj:validate( specs ... )
+\&  vobj:validate( specs, ... )
 .Ve
 .Sp
-Validate the passed argument list against the specifications.  It
+Validate the passed  list against the specifications.  It
 returns a list of values.  The first value is a boolean indicating
 whether or not the validation succeeded.
 .Sp
 If validation succeeded, the remainder of the list contains the
-values of the arguments (possibly modified during the validation).
+values (possibly modified during the validation).
 .Sp
 If validation failed, the second value is a string indicating what
 caused the failure.
 .IP "validate_tbl" 4
 .IX Item "validate_tbl"
 .Vb 1
-\&  vobj:validate_tbl( specs, tble )
+\&  vobj:validate_tbl( specs, table )
 .Ve
 .Sp
 Validate the contents of the passed table against the
 specifications. The return values are the same as for \fBvalidate\fR.
+.IP "getopt" 4
+.IX Item "getopt"
+.Vb 1
+\&  vobj:getopt( opt )
+.Ve
+.Sp
+Returns the value of the specified option.  Throws an error if the
+option does not exist.
 .SS "Procedural interface"
 .IX Subsection "Procedural interface"
 .IP "validate( specs, ... )" 4
@@ -808,7 +1033,7 @@ specifications. The return values are the same as for \fBvalidate\fR.
 \&  validate( specs, ... )
 .Ve
 .Sp
-Validate the passed argument list against the specifications using the
+Validate the passed list against the specifications using the
 current global settings for the validation options.  See the
 documentation for the \f(CW\*(C`validate()\*(C'\fR method for more details.
 .IP "validate_opts" 4
@@ -817,7 +1042,7 @@ documentation for the \f(CW\*(C`validate()\*(C'\fR method for more details.
 \&  validate_opts( opts, specs, ... )
 .Ve
 .Sp
-Validate the passed argument list against the specifications using the
+Validate the passed list against the specifications using the
 current global settings for the validation options.  Temporary values
 for validations options may be specified with the \f(CW\*(C`opts\*(C'\fR argument. The
 return values are the same as \fBvalidate\fR.
@@ -843,12 +1068,28 @@ Globally register a validation function for the named type which
 will be accepted by the \fBtype\fR validation attribute.  See the
 \&\f(CW\*(C`add_type()\*(C'\fR method for more details on the arguments.
 .Sp
-The function will be passed the argument to validate.  It should
+The function will be passed the value of the element to validate.  It should
 return two values:
 .IP "opts( \fItable of options\fR )" 4
 .IX Item "opts( table of options )"
 Globally set the values for the passed options.  See \*(L"Validation
 Options\*(R" for the available options.
+.IP "posnum( arg )" 4
+.IX Item "posnum( arg )"
+Test if \f(CW\*(C`arg\*(C'\fR is a number greater than zero.
+Returns true upon success, false and and error message if not.
+.IP "zposnum( arg )" 4
+.IX Item "zposnum( arg )"
+Test if \f(CW\*(C`arg\*(C'\fR is a number greater or equal to zero.
+Returns true upon success, false and and error message if not.
+.IP "posint( arg )" 4
+.IX Item "posint( arg )"
+Test if \f(CW\*(C`arg\*(C'\fR is a integer greater than zero.
+Returns true upon success, false and and error message if not.
+.IP "zposint( arg )" 4
+.IX Item "zposint( arg )"
+Test if \f(CW\*(C`arg\*(C'\fR is an integer greater or equal to zero.
+Returns true upon success, false and and error message if not.
 .SH "EXAMPLES"
 .IX Header "EXAMPLES"
 .IP "\(bu" 4
@@ -952,6 +1193,28 @@ specification based upon the value of the first positional element
 \&                            return false, "unknown idist: " .. tostring(arg)
 \&                          end
 \&                       end } }
+.Ve
+.IP "\(bu" 4
+Homogeneous Lists
+.Sp
+In this example, an element may be a list of numbers.
+.Sp
+.Vb 1
+\&  { multiple = true, type = \*(Aqnumber\*(Aq }
+.Ve
+.IP "\(bu" 4
+Heterogeneous Lists
+.Sp
+In this example, an element may be a list of enumerated strings or
+non-negative integers.
+.Sp
+.Vb 6
+\&  { multiple = true,
+\&    type = { \*(Aqzposnum\*(Aq,
+\&              [\*(AqFood Groups\*(Aq] =
+\&                  { enum = { \*(AqFruit\*(Aq, \*(AqBread\*(Aq, \*(AqSnacks\*(Aq } }
+\&            }
+\&  }
 .Ve
 .SH "AUTHOR"
 .IX Header "AUTHOR"

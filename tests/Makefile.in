@@ -44,7 +44,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/test1.in $(top_srcdir)/snippets/am_vars.mk \
+	$(top_srcdir)/snippets/am_vars.mk \
 	$(top_srcdir)/snippets/create_am_macros.mk \
 	$(top_srcdir)/snippets/inst_vars.mk \
 	$(top_srcdir)/snippets/substitute_config_variables.mk
@@ -55,7 +55,7 @@ am__aclocal_m4_deps = $(top_srcdir)/snippets/lib_lua.ac \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES = test1
+CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -174,9 +174,11 @@ BUILT_SOURCES =
 # extra files to add to the distribution
 
 # extra files to add to the distribution
-EXTRA_DIST = constraints.lua callback.lua defaults.lua deffunc.lua \
-	driver.lua excludes.lua inplace.lua mutate.lua named.lua \
-	nested.lua positional.lua requires.lua special.lua vtypes.lua
+EXTRA_DIST = callback.lua constraints.lua deepcompare.lua defaults.lua \
+	default_spec.lua deffunc.lua driver.lua excludes.lua \
+	inplace.lua multiple.lua mutate.lua named.lua name.lua \
+	nested.lua object.lua ordered.lua positional.lua requires.lua \
+	special.lua utils.lua vtypes.lua
 
 # Files tha make built but that one would want to rebuild
 MOSTLYCLEANFILES = 
@@ -200,7 +202,11 @@ MAINTAINERCLEANFILES = Makefile.in
 SUFFIXES = 
 
 # Test executables to be run
-TESTS = test1
+TESTS = driver.lua
+TESTS_ENVIRONMENT = \
+		LUA_PATH="@top_srcdir@/?.lua;@srcdir@/?.lua;$$LUA_PATH;;" \
+		$(LUA)
+
 SUBSTITUTE_CONFIG_VARIABLES_MK = 
 
 # this sed statement is used to fill in configuration variables in
@@ -279,8 +285,6 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-test1: $(top_builddir)/config.status $(srcdir)/test1.in
-	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 tags: TAGS
 TAGS:
 

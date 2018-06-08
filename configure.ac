@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.57])
 
-AC_INIT([validate-args],[1.2.4],[https://bitbucket.org/djerius/validate.args/issues],[validate-args], [https://bitbucket.org/djerius/validate.args])
+AC_INIT([validate-args],[1.5.2],[https://bitbucket.org/djerius/validate.args/issues],[validate-args], [https://bitbucket.org/djerius/validate.args])
 AM_INIT_AUTOMAKE([ check-news ])
 
 AC_SUBST( ROCKSPEC_VERSION, 1 )
@@ -39,6 +39,5 @@ AC_CONFIG_FILES([Makefile
 		 doc/Makefile
 		 tests/Makefile
 		 ])
-AC_CONFIG_FILES([tests/test1], [chmod +x tests/test1])
 AC_CONFIG_FILES(${ROCKSPEC_FILE_NAME}:rockspec.in)
 AC_OUTPUT

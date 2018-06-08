@@ -1,3 +1,74 @@
+1.5.2:
+
+[ENHANCEMENTS]
+
+* add argument validation to validate.inplace:new()
+
+1.5.1:
+
+[ENHANCEMENTS]
+
+* The validate.args functions posnum, zposnum, posint, and zposint now
+  return an error message upon error, making them more compatible
+  with Lua's assert() function.
+
+1.5.0:
+
+[API CHANGE]
+
+The default behavior was to allow nil positional arguments.  This is
+inconsistent with the behavior for table arguments (e.g., optional
+defaults to false), and caused confusion.
+
+The new default behavior is that positional arguments may not be
+nil.  Use the allow_nil specification to indicate that nil values are
+permitted.  The not_nil specification is now redundant and deprecated.
+
+
+1.4.0:
+
+[BUG FIX]
+
+* if a vtable element was scanned for defaults and any of the nested
+  specifications were required, an error was thrown.  the new
+  default_is_nil attribute stops the scans.
+
+[ENHANCEMENTS]
+
+* named arguments may now be processed in order (where order is
+  specified in the validation specification
+
+
+1.3.1:
+
+[ENHANCEMENTS]
+
+* new catch all specifications
+* user data can now be passed to callback functions
+* simple validation functions are now exposed to the caller
+
+1.3.0:
+
+[BUG FIXES]
+
+* lots of bugs in inlined types fixed
+* renaming of positional elements in nested tables didn't work
+* stop duplicate validation of validation specs
+
+[ENHANCEMENTS]
+
+* new specification option: named, allows per element renaming of
+  positional data elements
+
+1.2.5 :
+
+[ENHANCEMENTS]
+
+* new "multiple" parameter, indicating that an element is actually a table of
+  things to be validated against the same specification
+
+* "type" parameter now accepts "inlined" validation specifications.
+
 1.2.4 :
 
 [ENHANCEMENTS]

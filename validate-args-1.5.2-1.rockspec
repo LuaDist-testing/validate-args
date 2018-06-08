@@ -1,25 +1,24 @@
 -- This file was automatically generated for the LuaDist project.
 
 package = 'validate-args'
-version = '1.2.4-2'
+version = '1.5.2-1'
 -- LuaDist source
 source = {
-  tag = "1.2.4-2",
+  tag = "1.5.2-1",
   url = "git://github.com/LuaDist-testing/validate-args.git"
 }
 -- Original source
 -- source = {
---   url = "https://bitbucket.org/djerius/validate.args/downloads/validate-args-1.2.4.tar.gz"
+--   url = "https://bitbucket.org/djerius/validate.args/downloads/validate-args-1.5.2.tar.gz"
 -- }
 
 description = {
    summary = "Function argument validation",
    detailed = [[
-	 validate.args provides validation of function arguments
-	 by type, value, and user provided validation functions.
-         it can handle named and positional arguments.
-   ]],
-
+	 validate.args is a Lua module that provides a framework for
+	 validation of arguments to Lua functions as well as complex data
+	 structures. The included validate.inplace module provides "live"
+	 validation during assignment of values to elements in tables. ]],
    license = "GPL-3",
 
 }

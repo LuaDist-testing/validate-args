@@ -1,8 +1,310 @@
-2011-07-07  Diab Jerius  <dj@macabre.cfa.harvard.edu>
+2011-09-23  Diab Jerius  <dj@macabre.cfa.harvard.edu>
 
-	Tag 1.2.4
+	Tag 1.5.2
 
-2011-07-07 22:57 -0400  djerius  <djerius@cfa.harvard.edu>  (d517958f1ecb [tip])
+2011-09-23 16:54 -0400  djerius  <djerius@cfa.harvard.edu>  (d6a64a52a0a3 [tip])
+
+	* validate/inplace.lua:
+	add argument validation to validate.inplace:new()
+
+2011-09-22 17:56 -0400  djerius  <djerius@cfa.harvard.edu>  (7d049413cd92)
+
+	* .hgtags:
+	Added tag 1.5.1 for changeset 88905ffddc3c
+
+2011-09-22 17:56 -0400  djerius  <djerius@cfa.harvard.edu>  (88905ffddc3c [1.5.1])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and version for release
+
+2011-09-22 17:55 -0400  djerius  <djerius@cfa.harvard.edu>  (4d2bb4718152)
+
+	* doc/validate.args.pod, validate/args.lua:
+	return error message from exported type check functions
+
+2011-08-25 17:05 -0400  djerius  <djerius@cfa.harvard.edu>  (6ec353513f59)
+
+	* .hgtags:
+	Added tag 1.5.0 for changeset 0c125fa72c53
+
+2011-08-25 17:05 -0400  djerius  <djerius@cfa.harvard.edu>  (0c125fa72c53 [1.5.0])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and version for release
+
+2011-08-25 17:04 -0400  djerius  <djerius@cfa.harvard.edu>  (a5f2eb7c027a)
+
+	* doc/validate.args.pod, tests/object.lua, tests/positional.lua,
+	validate/args.lua:
+	nil positional parameters are now by default not allowed.
+
+	The default behavior was to allow nil positional arguments. This is
+	inconsistent with the behavior for table arguments (e.g., optional
+	defaults to false), and caused confusion.
+
+	The new default behavior is that positional arguments may not be
+	nil. A new specification, allow_nil, may be used to indicate that
+	nil values are permitted. The not_nil specification is now
+	redundant and deprecated.
+
+2011-08-25 16:31 -0400  djerius  <djerius@cfa.harvard.edu>  (204bd7dc39a9)
+
+	* tests/positional.lua:
+	don't toss possible error message in assert_true()
+
+2011-08-20 00:47 -0400  djerius  <djerius@cfa.harvard.edu>  (44893215bc4f)
+
+	* .hgtags:
+	Added tag 1.4.0 for changeset ed0bb6e049e4
+
+2011-08-20 00:46 -0400  djerius  <djerius@cfa.harvard.edu>  (ed0bb6e049e4 [1.4.0])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and version for release
+
+2011-08-18 17:56 -0400  djerius  <djerius@cfa.harvard.edu>  (9c631d8465ff)
+
+	* doc/validate.args.pod, validate/args.lua:
+	bug fix: default scan into nested specs resulted in an error if any
+	spec had no default.
+
+	if a vtable was optional but any of its elements wasn't an error was
+	thrown. there was no clean way (well, setting default = function()
+	return true, nil end) to prevent this. now, setting default_is_nil =
+	true will.
+
+2011-08-18 14:38 -0400  djerius  <djerius@cfa.harvard.edu>  (c7e08307e636)
+
+	* tests/ordered.lua: new file.
+	* doc/validate.args.pod, tests/Makefile.am, tests/driver.lua,
+	tests/ordered.lua, validate/args.lua:
+	provide ordered processing of elements in a vtable
+
+2011-07-24 18:09 -0400  djerius  <djerius@cfa.harvard.edu>  (cf79529478fc)
+
+	* .hgtags:
+	Added tag 1.3.1 for changeset f24fdd7ddd37
+
+2011-07-24 18:09 -0400  djerius  <djerius@cfa.harvard.edu>  (f24fdd7ddd37 [1.3.1])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and revision for release
+
+2011-07-24 18:08 -0400  djerius  <djerius@cfa.harvard.edu>  (0f318b461cd2)
+
+	* .hgtags:
+	Removed tag 1.3.1
+
+2011-07-23 17:47 -0400  djerius  <djerius@cfa.harvard.edu>  (50dfc10f0135)
+
+	* .hgtags:
+	Added tag 1.3.1 for changeset 4c8b841a3cc3
+
+2011-07-23 17:46 -0400  djerius  <djerius@cfa.harvard.edu>  (4c8b841a3cc3)
+
+	* doc/validate.args.pod:
+	add documentation for catch-all specifications
+
+2011-07-23 17:22 -0400  djerius  <djerius@cfa.harvard.edu>  (0fae8a926896)
+
+	* configure.ac:
+	remove dependency on deleted file
+
+2011-07-23 17:05 -0400  djerius  <djerius@cfa.harvard.edu>  (9735f8e5c995)
+
+	* tests/default_spec.lua: new file.
+	* tests/test1.in: deleted file.
+	* doc/validate.args.pod, tests/Makefile.am, tests/default_spec.lua,
+	tests/driver.lua, tests/test1.in, validate/args.lua:
+	add catch-all specifications, simplify invocation of tests
+
+2011-07-23 17:00 -0400  djerius  <djerius@cfa.harvard.edu>  (885830234c98)
+
+	* doc/validate.inplace.pod:
+	add disclaimer for pre & post callback functions
+
+2011-07-23 16:59 -0400  djerius  <djerius@cfa.harvard.edu>  (5d734e3a8cda)
+
+	* tests/deepcompare.lua: new file.
+	* tests/deepcompare.lua, tests/vtypes.lua:
+	update tests to work with new version of lunatest
+
+2011-07-14 17:34 -0400  djerius  <djerius@cfa.harvard.edu>  (e259a78869d9)
+
+	* doc/validate.args.pod, tests/object.lua, validate/args.lua:
+	add "udata" option to pass user data to callbacks; added
+	Validate::getopt and Option::get for support
+
+2011-07-14 11:45 -0400  djerius  <djerius@cfa.harvard.edu>  (983e355c2c44)
+
+	* validate/args.lua:
+	oops. gsub() returns two values; just use the first.
+
+2011-07-14 11:38 -0400  djerius  <djerius@cfa.harvard.edu>  (5c04159bcdcd)
+
+	* tests/name.lua: new file.
+	* tests/name.lua, validate/args.lua:
+	clean up stringified Names
+
+2011-07-14 11:20 -0400  djerius  <djerius@cfa.harvard.edu>  (1754ecb8423c)
+
+	* validate/args.lua:
+	expose simple type validation functions
+
+2011-07-13 15:26 -0400  djerius  <djerius@cfa.harvard.edu>  (27a997823823)
+
+	* validate/args.lua:
+	don't assume that the table in the specification is actually a table
+
+2011-07-12 21:49 -0400  djerius  <djerius@cfa.harvard.edu>  (80d680513c22)
+
+	* validate/args.lua:
+	expose posint() function directly to rest of internal code
+
+2011-07-12 17:09 -0400  djerius  <djerius@cfa.harvard.edu>  (1164e6aa2a72)
+
+	* .hgtags:
+	Added tag 1.3.0 for changeset 1de821bbd341
+
+2011-07-12 17:09 -0400  djerius  <djerius@cfa.harvard.edu>  (1de821bbd341 [1.3.0])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and version for release
+
+2011-07-12 16:57 -0400  djerius  <djerius@cfa.harvard.edu>  (c91bf7fd793d)
+
+	* doc/validate.args.pod:
+	add docs for data element named parameter; fix typo in examples
+
+2011-07-12 15:47 -0400  djerius  <djerius@cfa.harvard.edu>  (cd1874300cb4)
+
+	* validate/args.lua:
+	simplify error output when comparing against multiple types
+
+2011-07-12 15:46 -0400  djerius  <djerius@cfa.harvard.edu>  (268be80efe6f)
+
+	* tests/named.lua, validate/args.lua:
+	add data element specific "named" option
+
+2011-07-12 15:45 -0400  djerius  <djerius@cfa.harvard.edu>  (2a6221fe82ec)
+
+	* tests/named.lua:
+	for some reason validation spec checking was off for a couple of
+	tests; turn it back on
+
+2011-07-12 14:48 -0400  djerius  <djerius@cfa.harvard.edu>  (35dd0d51a379)
+
+	* validate/args.lua:
+	keep track of whether an element's spec was validated to prevent re-
+	validation
+
+	because the same code is used to validate the spec and data, when
+	performing the data scan the spec may get re-validated. keep track
+	of the state of validation to avoid this
+
+2011-07-12 13:59 -0400  djerius  <djerius@cfa.harvard.edu>  (8894e576c05a)
+
+	* tests/defaults.lua, tests/named.lua, validate/args.lua:
+	renaming positional elements (via the top level "named" option)
+	didn't work for nested positional elements
+
+2011-07-12 11:09 -0400  djerius  <djerius@cfa.harvard.edu>  (6929fc0f4e43)
+
+	* validate/args.lua:
+	use data element name object (rather than spec table) to uniquely
+	specify state
+
+	if a specification table is reused (for example during specification
+	validation the internal validate_spec table is used multiple times)
+	then state information was being mixed, as the specification table
+	was used as the unique key into the state table. Use instead the
+	data element name object, which will be unique.
+
+2011-07-12 11:00 -0400  djerius  <djerius@cfa.harvard.edu>  (731c599ac041)
+
+	* tests/vtypes.lua:
+	add lots of new tests for nested inline type specifictions
+
+2011-07-12 10:40 -0400  djerius  <djerius@cfa.harvard.edu>  (dc2121a313eb)
+
+	* validate/args.lua:
+	remove redundant type="table" in manufactured vtable specs as vtable
+	already checks for a table
+
+2011-07-12 09:19 -0400  djerius  <djerius@cfa.harvard.edu>  (7d340cf99576)
+
+	* validate/args.lua:
+	fix element name generation
+
+	* don't use name of specification element in data element name
+	* fix typo which cleared name in vtable processing
+
+2011-07-11 12:14 -0400  djerius  <djerius@cfa.harvard.edu>  (e1b9e66878e0)
+
+	* doc/Makefile.am:
+	manual pages for validate.inplace were not being generated
+
+2011-07-11 11:44 -0400  djerius  <djerius@cfa.harvard.edu>  (ecde5d7923b9)
+
+	* .hgtags:
+	Added tag 1.2.5 for changeset ecba73c3d9f1
+
+2011-07-11 11:43 -0400  djerius  <djerius@cfa.harvard.edu>  (ecba73c3d9f1 [1.2.5])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and version for release
+
+2011-07-11 11:42 -0400  djerius  <djerius@cfa.harvard.edu>  (093cbacad511)
+
+	* README, rockspec.in:
+	update description of module
+
+2011-07-11 11:35 -0400  djerius  <djerius@cfa.harvard.edu>  (5605b4456861)
+
+	* doc/validate.args.pod, tests/multiple.lua, tests/vtypes.lua,
+	validate/args.lua:
+	new "multiple" option, "allow_scalar". "type" parameter may now
+	accept inline validation specifications.
+
+2011-07-08 22:55 -0400  djerius  <djerius@cfa.harvard.edu>  (4c2c9d29dc57)
+
+	* tests/Makefile.am:
+	distribute test for multiple
+
+2011-07-08 22:51 -0400  djerius  <djerius@cfa.harvard.edu>  (4ffc395ccc5c)
+
+	* doc/validate.args.pod:
+	rephrase docs to be more inclusive of data structure validation
+
+2011-07-08 22:50 -0400  djerius  <djerius@cfa.harvard.edu>  (0e1b9c8a71fa)
+
+	* tests/multiple.lua: new file.
+	* doc/validate.args.pod, tests/driver.lua, tests/multiple.lua,
+	validate/args.lua:
+	add "multiple" option, which provides for elements which are tables
+	of similar things
+
+2011-07-08 22:45 -0400  djerius  <djerius@cfa.harvard.edu>  (4bf6547a0b1b)
+
+	* validate/args.lua:
+	white space, error messages, and minor code cleanup
+
+2011-07-08 00:35 -0400  djerius  <djerius@cfa.harvard.edu>  (b2ec8a5604f7)
+
+	* rockspec.in:
+	forgot to add validate.inplace to rockspec
+
+2011-07-07 23:03 -0400  djerius  <djerius@cfa.harvard.edu>  (8b47ced5e539)
+
+	* .hgtags:
+	Added tag 1.2.4 for changeset b5f28f2fd3c4
+
+2011-07-07 23:03 -0400  djerius  <djerius@cfa.harvard.edu>  (b5f28f2fd3c4 [1.2.4])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and version for release
+
+2011-07-07 22:57 -0400  djerius  <djerius@cfa.harvard.edu>  (d517958f1ecb)
 
 	* doc/validate.inplace.pod, tests/inplace.lua, validate/inplace.lua:
 	new file.
@@ -150,13 +452,6 @@
 
 	* tests/mutate.lua:
 	add error message upon test failure
-
-2011-06-15 17:05 -0400  djerius  <djerius@cfa.harvard.edu>  (14abcfc6aed5 <setmt>)
-
-	* .hgpatchinfo/setmt.dep, tests/setmt.lua: new file.
-	* .hgpatchinfo/setmt.dep, configure.ac, tests/Makefile.am,
-	tests/driver.lua, tests/setmt.lua, validate/args.lua:
-	start new patch on default
 
 2011-06-07 17:23 -0400  djerius  <djerius@cfa.harvard.edu>  (21ccc2a8f4be)
 

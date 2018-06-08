@@ -21,10 +21,14 @@
 	<li><a href="#description">DESCRIPTION</a></li>
 	<ul>
 
+		<li><a href="#validating_function_arguments">Validating Function Arguments</a></li>
+		<li><a href="#validating_data_structures">Validating Data Structures</a></li>
 		<li><a href="#validation_specifications">Validation Specifications</a></li>
-		<li><a href="#callback_arguments">Callback arguments</a></li>
+		<li><a href="#element_types">Element Types</a></li>
+		<li><a href="#callback_arguments">Callback Arguments</a></li>
+		<li><a href="#catch_all_specifications">Catch-all Specifications</a></li>
 		<li><a href="#mutating_validation_specifications">Mutating Validation Specifications</a></li>
-		<li><a href="#groups_of_arguments">Groups of Arguments</a></li>
+		<li><a href="#element_groups">Element Groups</a></li>
 		<li><a href="#validation_options">Validation Options</a></li>
 		<li><a href="#object_oriented_interface">Object oriented interface</a></li>
 		<ul>
@@ -48,7 +52,7 @@
 <p>
 </p>
 <h1><a name="name">NAME</a></h1>
-<p>validate.args - validate arguments</p>
+<p>validate.args - validate arguments and data structures</p>
 <p>
 </p>
 <hr />
@@ -85,9 +89,9 @@
 </p>
 <hr />
 <h1><a name="description">DESCRIPTION</a></h1>
-<p><strong>validate.args</strong> validates that a function's arguments meet certain
-specifications.  Both scalar and table arguments are validated, and
-validation of nested tables is supported.</p>
+<p><strong>validate.args</strong> provides a framework for validating function
+arguments and data structures.  Scalar and (nested) table values as
+well as lists of values of the same type may be validated.</p>
 <p><strong>validate.args</strong> provides both procedural and object-oriented
 interfaces.  The significant difference between the interfaces is that
 the procedural interface may be influenced by global settings while
@@ -95,11 +99,12 @@ the object-oriented interface keeps those settings local to each
 object.  Objects may themselves be cloned, allowing for nested
 hierarchies of validation specifications.  Changes to parent objects
 do not affect child objects, and vice-versa.</p>
+<p>
+</p>
+<h2><a name="validating_function_arguments">Validating Function Arguments</a></h2>
 <p>Positional, named, and mixed positional and named arguments are
 supported.  Positional arguments may be converted to named arguments
-for uniformity of access (see <a href="#validation_options">Validation Options</a>).  Each argument
-has a validation specification which provides the validation
-constraints.</p>
+for uniformity of access (see <a href="#validation_options">Validation Options</a>).</p>
 <dl>
 <dt><strong><a name="positional_arguments" class="item">Positional arguments</a></strong></dt>
 
@@ -146,36 +151,49 @@ on the named arguments, typically using the <a href="#vtable"><code>vtable</code
 </dl>
 <p>
 </p>
+<h2><a name="validating_data_structures">Validating Data Structures</a></h2>
+<p>Validation of data structures is very similar to validating function
+arguments.  The base structure operated upon is a table whose elements
+may be positional (indexed with integers) or named (indexed with
+anything else) or both.  The layout of the validation specifications
+are identical to those described above. Typically the <strong>validate_tbl</strong>
+method or function is used.</p>
+<p>
+</p>
 <h2><a name="validation_specifications">Validation Specifications</a></h2>
-<p>A validation specification is a set of constraints which an argument
+<p>A validation specification is a set of constraints which a value
 must meet.  In most cases the specification is encoded in a table,
 where each key-value pair represents a type of constraint and its
 parameters.  The specification may also be specified by a function
 (see <a href="#mutating_validation_specifications">Mutating Validation Specifications</a>).</p>
-<p>Multiple constraints may be specified for each argument. There are no
+<p><strong>Note:</strong> The documentation below refers to validation of both function
+arguments and data structures. When the term <em>element</em> is used it
+refers to either a function argument or to an element of a data
+structure.</p>
+<p>Multiple constraints may be specified for each element. There are no
 guarantees as to the order in which the constraints are applied.</p>
-<p>The caller may provide constraints which modify the passed arguments;
+<p>The caller may provide constraints which modify the passed elements;
 these must not expect a particular sequence of operation.</p>
 <p>The caller may provide callbacks which are called pre- and post-
-validation.  These may modify the argument values.</p>
-<p>The following constraint types are recognized:</p>
+validation.  These may modify the elements.</p>
+<p>The following specification parameters are recognized:</p>
 <dl>
 <dt><strong><a name="optional" class="item">optional</a></strong></dt>
 
 <dd>
-<p>This is a boolean attribute which, if true, indicates that the argument
-need not be present.  Positional as well as named arguments may be
-optional; if they are not at the end of the list they may be specified
-as <a href="#nil"><code>nil</code></a> in the function call, e.g.</p>
+<p>This is a boolean attribute which, if true, indicates that the element
+need not be present.  Positional (as well as named elements) may be
+optional; if they are not at the end of the list they must be specified
+as <code>nil</code> in the list of input values, e.g.</p>
 <pre>
-  foo( nil, 3 )</pre>
-<p>It defaults to <code>false</code>.  All arguments are required by default.</p>
+  nil, 3</pre>
+<p>This defaults to <code>false</code>.  All elements are required by default.</p>
 </dd>
 <dt><strong><a name="default" class="item">default</a></strong></dt>
 
 <dd>
-<p>This provides a value for an argument whose value was not specified,
-as well as indicating that the argument is optional.  This may be a
+<p>This provides the default value when a element was not specified,
+as well as indicating that the element is optional.  This may be a
 function, which will be called if a default value is required. The
 function is passed a single argument, a table (see <a href="#callback_arguments">Callback Arguments</a> for its contents). The function should return two values:</p>
 <ol>
@@ -186,113 +204,84 @@ function is passed a single argument, a table (see <a href="#callback_arguments"
 <p>the default value upon success, an error message upon failure</p>
 </li>
 </ol>
-<p>If no default value is specified for a table argument with a vtable
-constraint, the nested argument specifications in the vtable are
-scanned for defaults.</p>
+<p>If no default value is specified for a table element with a vtable
+constraint, the nested specifications in the vtable are scanned for defaults.</p>
+<p>Note that if nested specifications are scanned for defaults and not all
+of those specificatons provide defaults, an error will be thrown. To
+avoid this, use <a href="#default_is_nil"><code>default_is_nil</code></a></p>
+</dd>
+<dt><strong><a name="default_is_nil" class="item">default_is_nil</a></strong></dt>
+
+<dd>
+<p>This indicates that the default value for an element is <code>nil</code>.
+This is primarily used to indicate that nested vtable specifications
+should not be scanned for defaults.</p>
 </dd>
 <dt><strong><a name="type" class="item">type</a></strong></dt>
 
 <dd>
-<p>This specifies the expected type of argument. It may be either a single
-type or a list of types:</p>
-<pre>
-  type = 'number'
-  type = { 'number', 'boolean' }</pre>
-<p>Types are specified as strings, with the following types available:</p>
-<dl>
-<dt><strong><a name="nil" class="item">'nil'</a></strong></dt>
-
-<dt><strong><a name="number" class="item">'number'</a></strong></dt>
-
-<dt><strong><a name="string" class="item">'string'</a></strong></dt>
-
-<dt><strong><a name="boolean" class="item">'boolean'</a></strong></dt>
-
-<dt><strong><a name="table" class="item">'table'</a></strong></dt>
-
-<dt><strong><a name="function" class="item">'function'</a></strong></dt>
-
-<dt><strong><a name="thread" class="item">'thread'</a></strong></dt>
-
-<dt><strong><a name="userdata" class="item">'userdata'</a></strong></dt>
-
-<dd>
-<p>These are the built-in types as returned by the Lua <strong>type</strong> function.</p>
-</dd>
-<dt><strong><a name="posnum" class="item">'posnum'</a></strong></dt>
-
-<dd>
-<p>The argument must be a number greater than zero.</p>
-</dd>
-<dt><strong><a name="zposnum" class="item">'zposnum'</a></strong></dt>
-
-<dd>
-<p>The argument must be a number greater than or equal to zero.</p>
-</dd>
-<dt><strong><a name="posint" class="item">'posint'</a></strong></dt>
-
-<dd>
-<p>The argument must be an integer greater than zero.</p>
-</dd>
-<dt><strong><a name="zposint" class="item">'zposint'</a></strong></dt>
-
-<dd>
-<p>The argument must be an integer greater than or equal to zero.</p>
-</dd>
-</dl>
-<p>To add additional types see the <strong>add_type</strong> function.</p>
+<p>This specifies the expected type of the element. It may be either a
+single type or a list of types.  See <a href="#element_types">Element Types</a> for more
+information.  This is optional.</p>
 </dd>
 <dt><strong><a name="enum" class="item">enum</a></strong></dt>
 
 <dd>
-<p>This specifies one or more explicit values which the argument may
+<p>This specifies one or more explicit values which the element may
 take. It may be either a single value or a list of values:</p>
 <pre>
   enum = 33
   enum = { 'a', 33, 'b' }</pre>
 </dd>
+<dt><strong><a name="allow_nil" class="item">allow_nil</a></strong></dt>
+
+<dd>
+<p>This is a boolean and indicates that the element may be nil.  This
+only pertains to positional elements.</p>
+</dd>
 <dt><strong><a name="not_nil" class="item">not_nil</a></strong></dt>
 
 <dd>
-<p>This is a boolean and indicates that the value must not be nil.  This
-only pertains to positional arguments.</p>
+<p>This is a boolean and indicates that the element must not be nil.  This
+only pertains to positional elements. <em>THIS IS DEPRECATED</em>.  It defaults
+to <code>true</code>.</p>
 </dd>
 <dt><strong><a name="requires" class="item">requires</a></strong></dt>
 
 <dd>
-<p>This lists the names of one or more arguments which <em>must</em> be specified
-in addition to the current argument.  The value is either a single
+<p>This lists the names of one or more elements which <em>must</em> be specified
+in addition to the current element.  The value is either a single
 name or a list of names:</p>
 <pre>
   requires = 'arg3'
   requires = { 'arg3', 'arg4' }</pre>
-<p>See also <a href="#argument_groups">Argument Groups</a></p>
+<p>See also <a href="#element_groups">Element Groups</a></p>
 </dd>
 <dt><strong><a name="excludes" class="item">excludes</a></strong></dt>
 
 <dd>
-<p>This lists the names of one or more arguments which <em>may not</em> be specified
-in addition to the current argument.  The value is either a single
+<p>This lists the names of one or more elements which <em>may not</em> be specified
+in addition to the current element.  The value is either a single
 name or a list of names:</p>
 <pre>
   excludes = 'arg3'
   excludes = { 'arg3', 'arg4' }</pre>
-<p>See also <a href="#argument_groups">Argument Groups</a></p>
+<p>See also <a href="#element_groups">Element Groups</a></p>
 </dd>
 <dt><strong><a name="one_of" class="item">one_of</a></strong></dt>
 
 <dd>
-<p>This provides a list of names of other arguments of which exactly
-one <em>must</em> be specified in addition to the current argument:</p>
+<p>This provides a list of names of other elements of which exactly
+one <em>must</em> be specified in addition to the current element:</p>
 <pre>
   one_of = { 'arg3', 'arg4' }</pre>
-<p>See also <a href="#argument_groups">Argument Groups</a></p>
+<p>See also <a href="#element_groups">Element Groups</a></p>
 </dd>
 <dt><strong><a name="vfunc" class="item">vfunc</a></strong></dt>
 
 <dd>
-<p>This specifies a function which is called to validate the argument.
-It is called with two arguments, the passed argument value and a table
+<p>This specifies a function which is called to validate the element.
+It is called with two arguments, the passed element value and a table
 (see <a href="#callback_arguments">Callback Arguments</a> for its contents).  It must return two
 values:</p>
 <ol>
@@ -300,7 +289,7 @@ values:</p>
 <p>a boolean indicating success or failure;</p>
 </li>
 <li>
-<p>the (possibly modified) argument value upon success, an error message upon failure</p>
+<p>the (possibly modified) element value upon success, an error message upon failure</p>
 </li>
 </ol>
 <p>For example,</p>
@@ -315,14 +304,14 @@ values:</p>
 <dt><strong><a name="vtable" class="item">vtable</a></strong></dt>
 
 <dd>
-<p>This is used to validate the contents of an argument which is a table.
+<p>This is used to validate the contents of an element which is a table.
 Its value may be either:</p>
 <dl>
 <dt><strong><a name="a_table_of_specifications" class="item">a table of specifications</a></strong></dt>
 
 <dd>
 <p>There should be one element in the specification table for each element
-in the argument table. For example, to validate a call such as</p>
+in the element table. For example, to validate a call such as</p>
 <pre>
   foo( 'hello', { nv1 = 3, nv2 = 2 } )</pre>
 <p>Use</p>
@@ -344,7 +333,7 @@ in the argument table. For example, to validate a call such as</p>
 <dt><strong><a name="a_function" class="item">a function</a></strong></dt>
 
 <dd>
-<p>The function is called with two arguments: the passed argument value,
+<p>The function is called with two arguments: the passed element value,
 and a table (see <a href="#callback_arguments">Callback Arguments</a> for its contents) and must
 return two values:</p>
 <ol>
@@ -353,23 +342,42 @@ return two values:</p>
 </li>
 <li>
 <p>Upon success, a table of validation specifications. Upon failure, an
-error message.  See <a href="#examples">Examples</a> for an example of this in use.</p>
+error message.  See <a href="#examples">EXAMPLES</a> for an example of this in use.</p>
 </li>
 </ol>
-<p>This function may be called with the argument value equal to <a href="#nil"><code>nil</code></a> if
-no argument value was specified.</p>
+<p>This function may be called with the element value equal to <code>nil</code> if
+no element value was specified.</p>
 </dd>
 </dl>
+</dd>
+<dt><strong><a name="ordered" class="item">ordered</a></strong></dt>
+
+<dd>
+<p>If an element is a vtable and this parameter is true, the vtable's elements will
+be processed in the order specified by elements' <a href="#order"><code>order</code></a> parameters.</p>
+<p>This is useful if elements have callback functions which must be called
+in a specific order.</p>
+<p>To specify the <a href="#ordered"><code>ordered</code></a> attribute for <em>implicit</em> vtables you must
+use the <a href="#ordered"><code>ordered</code></a> validation option. Implicit vtables are created for
+the specification passed to <strong>validate_tbl</strong> and for pure named-element
+specifications passed to <strong>validate</strong>.</p>
+</dd>
+<dt><strong><a name="order" class="item">order</a></strong></dt>
+
+<dd>
+<p>If an element is <em>in</em> a vtable and the vtable has <a href="#ordered"><code>ordered</code></a> set,
+this specifies the &quot;weight&quot; of the item; elements with smaller weights will be
+processed before elements with larger weights.</p>
 </dd>
 <dt><strong><a name="precall" class="item">precall</a></strong></dt>
 
 <dt><strong><a name="postcall" class="item">postcall</a></strong></dt>
 
 <dd>
-<p>Functions to be called for each argument before and after argument
-validation.  They are called with two arguments: the passed argument
+<p>Functions to be called for each element before and after
+validation.  They are called with two arguments: the passed element
 value, and a table (see <a href="#callback_arguments">Callback Arguments</a> for its contents).  If
-the function wishes to modify the argument value it should return two
+the function wishes to modify the element value it should return two
 arguments, <code>true</code> and the new value, else it should return <code>false</code>.</p>
 <p>Please note:</p>
 <ul>
@@ -382,7 +390,7 @@ will not be called.</p>
 invoked.  If a specification is invalid neither callback is invoked.</p>
 </li>
 <li>
-<p>The functions are called at the table level for arguments which are
+<p>The functions are called at the table level for elements which are
 vtables.</p>
 </li>
 </ul>
@@ -390,15 +398,190 @@ vtables.</p>
 <dt><strong><a name="name" class="item">name</a></strong></dt>
 
 <dd>
-<p>A name for a positional argument.  If specified and the <a href="#named"><code>named</code></a>
-validation option is <em>true</em>, then the argument will be assigned this
-name in the returned argument table.  See <a href="#validation_options">Validation Options</a> for
+<p>A name for a positional element.  If specified and the <a href="#named"><code>named</code></a>
+validation option is <em>true</em>, then the element will be assigned this
+name in the returned table.  See <a href="#validation_options">Validation Options</a> for
 more information.</p>
+</dd>
+<dt><strong><a name="named" class="item">named</a></strong></dt>
+
+<dd>
+<p>Indicate that a name should be (or not be) assigned to a positional
+element. This option overrides the validation option of the same name,
+and is useful for control over particular elements.</p>
+<p>This option can only be specified for positional elements in tables,
+not at the top level of the data structure, e.g.</p>
+<pre>
+  spec = { { name = 'foo', named = true } }</pre>
+<p>will cause an error to be thrown, while</p>
+<pre>
+  spec = { data = { vtable = { { name = 'foo', named = true } } }}</pre>
+<p>is legal.  Use the <a href="#named"><code>named</code></a> validation option to assign names to top
+level positional elements.</p>
+</dd>
+<dt><strong><a name="multiple" class="item">multiple</a></strong></dt>
+
+<dd>
+<p>This indicates that the element is a table whose members must
+each meet the validation specifications.  For example, to validate
+a list of positive integers:</p>
+<pre>
+  { type = 'posint', multiple = true }</pre>
+<p>This parameter may take the following values:</p>
+<dl>
+<dt><strong><a name="true_or_false" class="item"><code>true</code> or <code>false</code></a></strong></dt>
+
+<dd>
+<p>If <code>true</code>, each member of the element table is validated.</p>
+</dd>
+<dt><strong><a name="a_table_of_options" class="item">a table of options</a></strong></dt>
+
+<dd>
+<p>In addition to validating the members of the input table, further
+validation is possible.  The following options are recognized:</p>
+<dl>
+<dt><strong><a name="n" class="item">n</a></strong></dt>
+
+<dd>
+<p>This specifies the exact number of members in the element table.  It is optional.</p>
+</dd>
+<dt><strong><a name="min" class="item">min</a></strong></dt>
+
+<dd>
+<p>This specifies the required minimum number of members in the element
+table.  It may not be combined with the <strong>n</strong> option.  It is optional.</p>
+</dd>
+<dt><strong><a name="max" class="item">max</a></strong></dt>
+
+<dd>
+<p>This specifies the required maximum number of members in the element
+table.  It may not be combined with the <strong>n</strong> option.  It is optional.</p>
+</dd>
+<dt><strong><a name="keys" class="item">keys</a></strong></dt>
+
+<dd>
+<p>This specifies a validation specification for the <em>keys</em> in the element table.
+It is optional.</p>
+<p>For example, the following ensures that keys consist only of alphabetical characters:</p>
+<pre>
+  multiple = {
+     keys = {
+       vfunc = function( val )
+                 if type(val) == 'string'
+                    and val:match( '^%a+$' ) then
+                   return true, val
+                 else
+                   return false,
+                          &quot;only alpha characters allowed&quot;
+                 end
+               end
+         }
+  }</pre>
+</dd>
+<dt><strong><a name="allow_scalar" class="item">allow_scalar</a></strong></dt>
+
+<dd>
+<p>Normally, indicating a multiplicity implies that the element must be a
+table.  This ensures that there is no confusion if the members of that
+table are themselves tables For.  example, is</p>
+<pre>
+  foo = { a = 2 }</pre>
+<p>a table of multiple values (with multiplicity of 1) or is it a single value
+which happens to be a table?</p>
+<p>If the element is a scalar, there is no confusion. If this option is <strong>true</strong>,
+<strong>validate.args</strong> will upgrade the element to a table.</p>
+<p>This option defaults to <strong>false</strong></p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd>
 </dl>
 <p>
 </p>
-<h2><a name="callback_arguments">Callback arguments</a></h2>
+<h2><a name="element_types">Element Types</a></h2>
+<p><strong>validate.args</strong> supports two schemes for specifying element types for the <a href="#type"><code>type</code></a> option:
+<em>simple</em> and <em>inline</em>.</p>
+<p>Simple types include the standard Lua types and can be augmented using
+the <strong>add_type</strong> function or method.  They are specified using their name (as a string):</p>
+<dl>
+<dt><strong><a name="number" class="item">'number'</a></strong></dt>
+
+<dt><strong><a name="string" class="item">'string'</a></strong></dt>
+
+<dt><strong><a name="boolean" class="item">'boolean'</a></strong></dt>
+
+<dt><strong><a name="table" class="item">'table'</a></strong></dt>
+
+<dt><strong><a name="function" class="item">'function'</a></strong></dt>
+
+<dt><strong><a name="thread" class="item">'thread'</a></strong></dt>
+
+<dt><strong><a name="userdata" class="item">'userdata'</a></strong></dt>
+
+<dd>
+<p>These are the built-in types as returned by the Lua <strong>type</strong> function.</p>
+</dd>
+<dt><strong><a name="posnum" class="item">'posnum'</a></strong></dt>
+
+<dd>
+<p>The element must be a number greater than zero.</p>
+</dd>
+<dt><strong><a name="zposnum" class="item">'zposnum'</a></strong></dt>
+
+<dd>
+<p>The element must be a number greater than or equal to zero.</p>
+</dd>
+<dt><strong><a name="posint" class="item">'posint'</a></strong></dt>
+
+<dd>
+<p>The element must be an integer greater than zero.</p>
+</dd>
+<dt><strong><a name="zposint" class="item">'zposint'</a></strong></dt>
+
+<dd>
+<p>The element must be an integer greater than or equal to zero.</p>
+</dd>
+</dl>
+<p>Inline types are specified as tables of validation  specifications.
+They are a bit more complex.</p>
+<ol>
+<li>
+<p>When using inline type specifications, the specifications must be
+passed to the <code>types</code> option as a <em>list</em> of types, even if there is
+only one specification.</p>
+</li>
+<li>
+<p>Inline types must be given a name.  It should not be the same as
+the name of any simple type.</p>
+</li>
+</ol>
+<p>For example,  here is the type specification for the <strong>multiple</strong> option:</p>
+<pre>
+     type = { 'boolean',
+              ['multiple table'] = {
+                 vtable = {
+                    min = { type = 'zposint', optional = true,
+                            excludes = 'n'
+                         },
+                    max = { type = 'posint',  optional = true,
+                            excludes = 'n'
+                         },
+                    n   = { type = 'posint',  optional = true,
+                            excludes = { 'min', 'max' }
+                         },
+                    keys   = { vtable = validate_spec,
+                               optional = true
+                            },
+                    allow_scalar = { type = 'boolean', default = false },
+                 }
+              }
+           },</pre>
+<p>It indicates that <strong>multiple</strong> may either be a boolean value or a table
+which may have the elements <a href="#min"><code>min</code></a>, <a href="#max"><code>max</code></a>, c&lt;n&gt;, etc.</p>
+<p>
+</p>
+<h2><a name="callback_arguments">Callback Arguments</a></h2>
 <p>Several of the validation specification entries take callback
 functions.  The last argument passed to these functions is a table
 containing the following named entries:</p>
@@ -412,53 +595,86 @@ being used, this will be a default object.</p>
 <dt><strong>name</strong></dt>
 
 <dd>
-<p>The fully qualified name of the argument stored as a
+<p>The fully qualified name of the element stored as a
 <code>validate.args.Name</code> object.  Use the <code>tostring()</code> function (or
 the similarly named method) to stringify it.</p>
 </dd>
 <dt><strong><a name="spec" class="item">spec</a></strong></dt>
 
 <dd>
-<p>The specification table for the argument. <strong>Do not modify this</strong>.</p>
+<p>The specification table for the element. <strong>Do not modify this</strong>.</p>
 </dd>
 </dl>
+<p>
+</p>
+<h2><a name="catch_all_specifications">Catch-all Specifications</a></h2>
+<p>It is possible to provide default specifications for named or
+positional elements in tables.  These are passed as specifications for
+the special names <code>%named</code> and <code>%pos</code>.  A third special name
+<code>%default</code> is an alternative which can be used to provide a catch-all
+for all unmatched elements.</p>
+<p>The specifications must be functions. They are passed the element name or position and
+its value.  They should return two values,</p>
+<ol>
+<li>
+<p>a boolean indicating that the element name or position is acceptable</p>
+</li>
+<li>
+<p>if acceptable, a specification table for the element.</p>
+</li>
+</ol>
+<p>For example, to catch all even numbered positional elements in a table
+after the first two:</p>
+<pre>
+    vtable = {
+       { name = &quot;first&quot;, type = 'string' },
+       { name = &quot;second&quot;, type = 'table' },
+       [%pos] = function (k,v)
+                   --only look at even numbered positions
+                   if k%2 == 0 then
+                     return true, { type = 'posint' }
+                   else
+                     return false
+                   end
+                end
+    }</pre>
 <p>
 </p>
 <h2><a name="mutating_validation_specifications">Mutating Validation Specifications</a></h2>
 <p>A validation specification is usually (as documented above) a table of
 constraints.  In the case where the entire validation table must be
 created on the fly the validation specification may be a <em>function</em>.
-The function should take a single parameter - the passed argument
+The function should take a single parameter - the passed element
 <em>value</em> - and must return two values:</p>
 <ol>
 <li>
 <p>a boolean indicating success or failure;</p>
 </li>
 <li>
-<p>Upon success, a table of validation specifcations. Upon failure, an error message.</p>
+<p>Upon success, a table of validation specifications. Upon failure, an error message.</p>
 </li>
 </ol>
 <p>
 </p>
-<h2><a name="groups_of_arguments">Groups of Arguments</a></h2>
-<p>Some operations on groups of arguments are possible for named
-arguments.  These are specified as special &quot;arguments&quot; in the
+<h2><a name="element_groups">Element Groups</a></h2>
+<p>Some operations on groups of elements are possible for named
+elements.  These are specified as special &quot;names&quot; in the
 validation specification.  In order to accomodate multiple groups,
-these &quot;arguments&quot; take as values a <em>list of lists</em>,</p>
+these &quot;names&quot; take as values a <em>list of lists</em>,</p>
 <pre>
   ['%one_of'] = { { 'a', 'b', 'c' } }</pre>
 <p><strong>not</strong> a simple list:</p>
 <pre>
   ['%one_of'] = { 'a', 'b', 'c' }</pre>
-<p>in ordeThis allows specifying multiple groups:</p>
+<p>This allows specifying multiple groups:</p>
 <pre>
   ['%one_of'] = { { 'a', 'b', 'c' } , { 'd', 'e', 'f' } }</pre>
 <dl>
 <dt><strong><a name="_one_of" class="item">%one_of</a></strong></dt>
 
 <dd>
-<p>This ensures that exactly one argument in a group is specified.  For
-example, say that the caller must provide exactly one of the arguments
+<p>This ensures that exactly one element in a group is specified.  For
+example, say that the caller must provide exactly one of the elements
 <code>arg1</code>, <code>arg2</code>, or <code>arg3</code>.  Exclusivity is obtained via</p>
 <pre>
   arg1 = { optional = true, excludes = { 'arg2', 'arg3' } },
@@ -478,7 +694,7 @@ so the above could be rewritten as</p>
 <dt><strong><a name="_oneplus_of" class="item">%oneplus_of</a></strong></dt>
 
 <dd>
-<p>This ensures that at least one argument in a group is specified. More
+<p>This ensures that at least one element in a group is specified. More
 may be specified.  As a complicated example:</p>
 <pre>
   sigma   = { optional = true, excludes = { 'sigma_x', 'sigma_y' } },
@@ -510,7 +726,7 @@ this to <code>true</code> will cause the specifications to be checked.</p>
 
 <dd>
 <p>If <code>true</code>, the Lua <strong>error()</strong> function will be called the case of
-invalid arguments instead of returning a status code and message.</p>
+invalid elements instead of returning a status code and message.</p>
 <p>This defaults to <code>false</code>.</p>
 </dd>
 <dt><strong><a name="error_on_bad_spec" class="item">error_on_bad_spec</a></strong></dt>
@@ -520,10 +736,10 @@ invalid arguments instead of returning a status code and message.</p>
 call to the Lua <strong>error()</strong> function.</p>
 <p>This defaults to <code>false</code>.</p>
 </dd>
-<dt><strong><a name="named" class="item">named</a></strong></dt>
+<dt><strong>named</strong></dt>
 
 <dd>
-<p>If this is <code>true</code>, positional arguments are returned as a table, with
+<p>If this is <code>true</code>, positional elements are returned as a table, with
 their names given either by the <a href="#name"><code>name</code></a> attribute in the validation
 specification or by their cardinal index in the argument list.
 For example:</p>
@@ -541,7 +757,7 @@ For example:</p>
 <dt><strong><a name="allow_extra" class="item">allow_extra</a></strong></dt>
 
 <dd>
-<p>If this is <code>true</code>, then any extra arguments (either named or positional)
+<p>If this is <code>true</code>, then any extra elements (either named or positional)
 which are not mentioned in the validation specification are quietly
 ignored. For example:</p>
 <pre>
@@ -561,7 +777,7 @@ ignored. For example:</p>
 
 <dd>
 <p>If this is <code>true</code> and <a href="#allow_extra"><code>allow_extra</code></a> is also <code>true</code>, then any extra
-arguments (either named or positional) which are not mentioned in the
+elements (either named or positional) which are not mentioned in the
 validation specification are passed through.  For example:</p>
 <pre>
   local ok, a, b, c = validate_opts( { allow_extra = true,
@@ -575,6 +791,19 @@ validation specification are passed through.  For example:</p>
   b = 2
   c = 3</pre>
 <p>This defaults to <code>false</code>.</p>
+</dd>
+<dt><strong><a name="udata" class="item">udata</a></strong></dt>
+
+<dd>
+<p>This option is used to pass arbitrary data to the callback routines.
+Use the <a href="#getopt"><code>getopt</code></a> method to retrieve it.</p>
+</dd>
+<dt><strong>ordered</strong></dt>
+
+<dd>
+<p>If this is true, implicit vtables will be processed in order specified
+by their elements' <a href="#order"><code>order</code></a> parameters.  See the documentation
+for the <a href="#ordered"><code>ordered</code></a> validation specification for more information.</p>
 </dd>
 </dl>
 <p>
@@ -633,6 +862,10 @@ the current values set by the <a href="#add_type"><code>add_type()</code></a> fu
 <p>This creates an independent copy of the <code>vobj</code> object, including all
 of its options and types.  This is useful for nested specialization of
 types and options.</p>
+<p><strong>Warning!</strong> Only a shallow copy of the objects' validation options is made;
+if any of the option values are tables (e.g. <a href="#udata"><code>udata</code></a>) the options in the
+new object will refer to the same tables as in the original object.</p>
+<p><strong>Do not rely upon this behavior.</strong></p>
 </dd>
 </dl>
 <p>
@@ -658,14 +891,14 @@ thrown if the specified options are not recognized.</p>
    vobj:add_type( type_name, func )</pre>
 <p>Register a validation function for the named type which
 will be accepted by the <strong>type</strong> validation attribute.</p>
-<p>The function will be passed the argument to validate.  It should
+<p>The function will be passed the value of the element to validate.  It should
 return two values:</p>
 <ol>
 <li>
 <p>a boolean indicating success or failure;</p>
 </li>
 <li>
-<p>the (possibly modified) argument upon success, an error message upon failure</p>
+<p>the (possibly modified) element value upon success, an error message upon failure</p>
 </li>
 </ol>
 <p>For example, the following</p>
@@ -679,18 +912,18 @@ return two values:</p>
                       end
           )</pre>
 <p>adds a new type called <code>mytype</code> which accepts only numbers between 2
-and 3 (exclusive) and modifies the argument by multiplying it by 3.</p>
+and 3 (exclusive) and modifies the element value by multiplying it by 3.</p>
 </dd>
 <dt><strong><a name="validate" class="item">validate</a></strong></dt>
 
 <dd>
 <pre>
-  vobj:validate( specs ... )</pre>
-<p>Validate the passed argument list against the specifications.  It
+  vobj:validate( specs, ... )</pre>
+<p>Validate the passed  list against the specifications.  It
 returns a list of values.  The first value is a boolean indicating
 whether or not the validation succeeded.</p>
 <p>If validation succeeded, the remainder of the list contains the
-values of the arguments (possibly modified during the validation).</p>
+values (possibly modified during the validation).</p>
 <p>If validation failed, the second value is a string indicating what
 caused the failure.</p>
 </dd>
@@ -698,9 +931,17 @@ caused the failure.</p>
 
 <dd>
 <pre>
-  vobj:validate_tbl( specs, tble )</pre>
+  vobj:validate_tbl( specs, table )</pre>
 <p>Validate the contents of the passed table against the
 specifications. The return values are the same as for <strong>validate</strong>.</p>
+</dd>
+<dt><strong><a name="getopt" class="item">getopt</a></strong></dt>
+
+<dd>
+<pre>
+  vobj:getopt( opt )</pre>
+<p>Returns the value of the specified option.  Throws an error if the
+option does not exist.</p>
 </dd>
 </dl>
 <p>
@@ -712,7 +953,7 @@ specifications. The return values are the same as for <strong>validate</strong>.
 <dd>
 <pre>
   validate( specs, ... )</pre>
-<p>Validate the passed argument list against the specifications using the
+<p>Validate the passed list against the specifications using the
 current global settings for the validation options.  See the
 documentation for the <a href="#validate"><code>validate()</code></a> method for more details.</p>
 </dd>
@@ -721,7 +962,7 @@ documentation for the <a href="#validate"><code>validate()</code></a> method for
 <dd>
 <pre>
   validate_opts( opts, specs, ... )</pre>
-<p>Validate the passed argument list against the specifications using the
+<p>Validate the passed list against the specifications using the
 current global settings for the validation options.  Temporary values
 for validations options may be specified with the <a href="#opts"><code>opts</code></a> argument. The
 return values are the same as <strong>validate</strong>.</p>
@@ -746,13 +987,37 @@ same as <strong>validate</strong>.</p>
 <p>Globally register a validation function for the named type which
 will be accepted by the <strong>type</strong> validation attribute.  See the
 <a href="#add_type"><code>add_type()</code></a> method for more details on the arguments.</p>
-<p>The function will be passed the argument to validate.  It should
+<p>The function will be passed the value of the element to validate.  It should
 return two values:</p>
 </dd>
 <dt><strong><a name="opts" class="item">opts( <em>table of options</em> )</a></strong></dt>
 
 <dd>
 <p>Globally set the values for the passed options.  See <a href="#validation_options">Validation Options</a> for the available options.</p>
+</dd>
+<dt><strong>posnum( arg )</strong></dt>
+
+<dd>
+<p>Test if <code>arg</code> is a number greater than zero.
+Returns true upon success, false and and error message if not.</p>
+</dd>
+<dt><strong>zposnum( arg )</strong></dt>
+
+<dd>
+<p>Test if <code>arg</code> is a number greater or equal to zero.
+Returns true upon success, false and and error message if not.</p>
+</dd>
+<dt><strong>posint( arg )</strong></dt>
+
+<dd>
+<p>Test if <code>arg</code> is a integer greater than zero.
+Returns true upon success, false and and error message if not.</p>
+</dd>
+<dt><strong>zposint( arg )</strong></dt>
+
+<dd>
+<p>Test if <code>arg</code> is an integer greater or equal to zero.
+Returns true upon success, false and and error message if not.</p>
 </dd>
 </dl>
 <p>
@@ -838,6 +1103,24 @@ specification based upon the value of the first positional element
                             return false, &quot;unknown idist: &quot; .. tostring(arg)
                           end
                        end } }</pre>
+</li>
+<li><strong><a name="homogeneous_lists" class="item">Homogeneous Lists</a></strong>
+
+<p>In this example, an element may be a list of numbers.</p>
+<pre>
+  { multiple = true, type = 'number' }</pre>
+</li>
+<li><strong><a name="heterogeneous_lists" class="item">Heterogeneous Lists</a></strong>
+
+<p>In this example, an element may be a list of enumerated strings or
+non-negative integers.</p>
+<pre>
+  { multiple = true,
+    type = { 'zposnum',
+              ['Food Groups'] =
+                  { enum = { 'Fruit', 'Bread', 'Snacks' } }
+            }
+  }</pre>
 </li>
 </ul>
 <p>
