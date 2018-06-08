@@ -1,6 +1,6 @@
-# generated automatically by aclocal 1.15 -*- Autoconf -*-
+# generated automatically by aclocal 1.15.1 -*- Autoconf -*-
 
-# Copyright (C) 1996-2014 Free Software Foundation, Inc.
+# Copyright (C) 1996-2017 Free Software Foundation, Inc.
 
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -20,7 +20,7 @@ You have another version of autoconf.  It may work, but is not guaranteed to.
 If you have problems, you may need to regenerate the build system entirely.
 To do so, use the procedure documented by the package, typically 'autoreconf'.])])
 
-# Copyright (C) 2002-2014 Free Software Foundation, Inc.
+# Copyright (C) 2002-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -35,7 +35,7 @@ AC_DEFUN([AM_AUTOMAKE_VERSION],
 [am__api_version='1.15'
 dnl Some users find AM_AUTOMAKE_VERSION and mistake it for a way to
 dnl require some minimum version.  Point them to the right macro.
-m4_if([$1], [1.15], [],
+m4_if([$1], [1.15.1], [],
       [AC_FATAL([Do not call $0, use AM_INIT_AUTOMAKE([$1]).])])dnl
 ])
 
@@ -51,14 +51,14 @@ m4_define([_AM_AUTOCONF_VERSION], [])
 # Call AM_AUTOMAKE_VERSION and AM_AUTOMAKE_VERSION so they can be traced.
 # This function is AC_REQUIREd by AM_INIT_AUTOMAKE.
 AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION],
-[AM_AUTOMAKE_VERSION([1.15])dnl
+[AM_AUTOMAKE_VERSION([1.15.1])dnl
 m4_ifndef([AC_AUTOCONF_VERSION],
   [m4_copy([m4_PACKAGE_VERSION], [AC_AUTOCONF_VERSION])])dnl
 _AM_AUTOCONF_VERSION(m4_defn([AC_AUTOCONF_VERSION]))])
 
 # AM_AUX_DIR_EXPAND                                         -*- Autoconf -*-
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -110,7 +110,7 @@ am_aux_dir=`cd "$ac_aux_dir" && pwd`
 
 # AM_COND_IF                                            -*- Autoconf -*-
 
-# Copyright (C) 2008-2014 Free Software Foundation, Inc.
+# Copyright (C) 2008-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -147,7 +147,7 @@ fi[]dnl
 
 # AM_CONDITIONAL                                            -*- Autoconf -*-
 
-# Copyright (C) 1997-2014 Free Software Foundation, Inc.
+# Copyright (C) 1997-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -178,9 +178,274 @@ AC_CONFIG_COMMANDS_PRE(
 Usually this means the macro was only invoked conditionally.]])
 fi])])
 
+# Copyright (C) 1999-2017 Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+
+# There are a few dirty hacks below to avoid letting 'AC_PROG_CC' be
+# written in clear, in which case automake, when reading aclocal.m4,
+# will think it sees a *use*, and therefore will trigger all it's
+# C support machinery.  Also note that it means that autoscan, seeing
+# CC etc. in the Makefile, will ask for an AC_PROG_CC use...
+
+
+# _AM_DEPENDENCIES(NAME)
+# ----------------------
+# See how the compiler implements dependency checking.
+# NAME is "CC", "CXX", "OBJC", "OBJCXX", "UPC", or "GJC".
+# We try a few techniques and use that to set a single cache variable.
+#
+# We don't AC_REQUIRE the corresponding AC_PROG_CC since the latter was
+# modified to invoke _AM_DEPENDENCIES(CC); we would have a circular
+# dependency, and given that the user is not expected to run this macro,
+# just rely on AC_PROG_CC.
+AC_DEFUN([_AM_DEPENDENCIES],
+[AC_REQUIRE([AM_SET_DEPDIR])dnl
+AC_REQUIRE([AM_OUTPUT_DEPENDENCY_COMMANDS])dnl
+AC_REQUIRE([AM_MAKE_INCLUDE])dnl
+AC_REQUIRE([AM_DEP_TRACK])dnl
+
+m4_if([$1], [CC],   [depcc="$CC"   am_compiler_list=],
+      [$1], [CXX],  [depcc="$CXX"  am_compiler_list=],
+      [$1], [OBJC], [depcc="$OBJC" am_compiler_list='gcc3 gcc'],
+      [$1], [OBJCXX], [depcc="$OBJCXX" am_compiler_list='gcc3 gcc'],
+      [$1], [UPC],  [depcc="$UPC"  am_compiler_list=],
+      [$1], [GCJ],  [depcc="$GCJ"  am_compiler_list='gcc3 gcc'],
+                    [depcc="$$1"   am_compiler_list=])
+
+AC_CACHE_CHECK([dependency style of $depcc],
+               [am_cv_$1_dependencies_compiler_type],
+[if test -z "$AMDEP_TRUE" && test -f "$am_depcomp"; then
+  # We make a subdir and do the tests there.  Otherwise we can end up
+  # making bogus files that we don't know about and never remove.  For
+  # instance it was reported that on HP-UX the gcc test will end up
+  # making a dummy file named 'D' -- because '-MD' means "put the output
+  # in D".
+  rm -rf conftest.dir
+  mkdir conftest.dir
+  # Copy depcomp to subdir because otherwise we won't find it if we're
+  # using a relative directory.
+  cp "$am_depcomp" conftest.dir
+  cd conftest.dir
+  # We will build objects and dependencies in a subdirectory because
+  # it helps to detect inapplicable dependency modes.  For instance
+  # both Tru64's cc and ICC support -MD to output dependencies as a
+  # side effect of compilation, but ICC will put the dependencies in
+  # the current directory while Tru64 will put them in the object
+  # directory.
+  mkdir sub
+
+  am_cv_$1_dependencies_compiler_type=none
+  if test "$am_compiler_list" = ""; then
+     am_compiler_list=`sed -n ['s/^#*\([a-zA-Z0-9]*\))$/\1/p'] < ./depcomp`
+  fi
+  am__universal=false
+  m4_case([$1], [CC],
+    [case " $depcc " in #(
+     *\ -arch\ *\ -arch\ *) am__universal=true ;;
+     esac],
+    [CXX],
+    [case " $depcc " in #(
+     *\ -arch\ *\ -arch\ *) am__universal=true ;;
+     esac])
+
+  for depmode in $am_compiler_list; do
+    # Setup a source with many dependencies, because some compilers
+    # like to wrap large dependency lists on column 80 (with \), and
+    # we should not choose a depcomp mode which is confused by this.
+    #
+    # We need to recreate these files for each test, as the compiler may
+    # overwrite some of them when testing with obscure command lines.
+    # This happens at least with the AIX C compiler.
+    : > sub/conftest.c
+    for i in 1 2 3 4 5 6; do
+      echo '#include "conftst'$i'.h"' >> sub/conftest.c
+      # Using ": > sub/conftst$i.h" creates only sub/conftst1.h with
+      # Solaris 10 /bin/sh.
+      echo '/* dummy */' > sub/conftst$i.h
+    done
+    echo "${am__include} ${am__quote}sub/conftest.Po${am__quote}" > confmf
+
+    # We check with '-c' and '-o' for the sake of the "dashmstdout"
+    # mode.  It turns out that the SunPro C++ compiler does not properly
+    # handle '-M -o', and we need to detect this.  Also, some Intel
+    # versions had trouble with output in subdirs.
+    am__obj=sub/conftest.${OBJEXT-o}
+    am__minus_obj="-o $am__obj"
+    case $depmode in
+    gcc)
+      # This depmode causes a compiler race in universal mode.
+      test "$am__universal" = false || continue
+      ;;
+    nosideeffect)
+      # After this tag, mechanisms are not by side-effect, so they'll
+      # only be used when explicitly requested.
+      if test "x$enable_dependency_tracking" = xyes; then
+	continue
+      else
+	break
+      fi
+      ;;
+    msvc7 | msvc7msys | msvisualcpp | msvcmsys)
+      # This compiler won't grok '-c -o', but also, the minuso test has
+      # not run yet.  These depmodes are late enough in the game, and
+      # so weak that their functioning should not be impacted.
+      am__obj=conftest.${OBJEXT-o}
+      am__minus_obj=
+      ;;
+    none) break ;;
+    esac
+    if depmode=$depmode \
+       source=sub/conftest.c object=$am__obj \
+       depfile=sub/conftest.Po tmpdepfile=sub/conftest.TPo \
+       $SHELL ./depcomp $depcc -c $am__minus_obj sub/conftest.c \
+         >/dev/null 2>conftest.err &&
+       grep sub/conftst1.h sub/conftest.Po > /dev/null 2>&1 &&
+       grep sub/conftst6.h sub/conftest.Po > /dev/null 2>&1 &&
+       grep $am__obj sub/conftest.Po > /dev/null 2>&1 &&
+       ${MAKE-make} -s -f confmf > /dev/null 2>&1; then
+      # icc doesn't choke on unknown options, it will just issue warnings
+      # or remarks (even with -Werror).  So we grep stderr for any message
+      # that says an option was ignored or not supported.
+      # When given -MP, icc 7.0 and 7.1 complain thusly:
+      #   icc: Command line warning: ignoring option '-M'; no argument required
+      # The diagnosis changed in icc 8.0:
+      #   icc: Command line remark: option '-MP' not supported
+      if (grep 'ignoring option' conftest.err ||
+          grep 'not supported' conftest.err) >/dev/null 2>&1; then :; else
+        am_cv_$1_dependencies_compiler_type=$depmode
+        break
+      fi
+    fi
+  done
+
+  cd ..
+  rm -rf conftest.dir
+else
+  am_cv_$1_dependencies_compiler_type=none
+fi
+])
+AC_SUBST([$1DEPMODE], [depmode=$am_cv_$1_dependencies_compiler_type])
+AM_CONDITIONAL([am__fastdep$1], [
+  test "x$enable_dependency_tracking" != xno \
+  && test "$am_cv_$1_dependencies_compiler_type" = gcc3])
+])
+
+
+# AM_SET_DEPDIR
+# -------------
+# Choose a directory name for dependency files.
+# This macro is AC_REQUIREd in _AM_DEPENDENCIES.
+AC_DEFUN([AM_SET_DEPDIR],
+[AC_REQUIRE([AM_SET_LEADING_DOT])dnl
+AC_SUBST([DEPDIR], ["${am__leading_dot}deps"])dnl
+])
+
+
+# AM_DEP_TRACK
+# ------------
+AC_DEFUN([AM_DEP_TRACK],
+[AC_ARG_ENABLE([dependency-tracking], [dnl
+AS_HELP_STRING(
+  [--enable-dependency-tracking],
+  [do not reject slow dependency extractors])
+AS_HELP_STRING(
+  [--disable-dependency-tracking],
+  [speeds up one-time build])])
+if test "x$enable_dependency_tracking" != xno; then
+  am_depcomp="$ac_aux_dir/depcomp"
+  AMDEPBACKSLASH='\'
+  am__nodep='_no'
+fi
+AM_CONDITIONAL([AMDEP], [test "x$enable_dependency_tracking" != xno])
+AC_SUBST([AMDEPBACKSLASH])dnl
+_AM_SUBST_NOTMAKE([AMDEPBACKSLASH])dnl
+AC_SUBST([am__nodep])dnl
+_AM_SUBST_NOTMAKE([am__nodep])dnl
+])
+
+# Generate code to set up dependency tracking.              -*- Autoconf -*-
+
+# Copyright (C) 1999-2017 Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+
+# _AM_OUTPUT_DEPENDENCY_COMMANDS
+# ------------------------------
+AC_DEFUN([_AM_OUTPUT_DEPENDENCY_COMMANDS],
+[{
+  # Older Autoconf quotes --file arguments for eval, but not when files
+  # are listed without --file.  Let's play safe and only enable the eval
+  # if we detect the quoting.
+  case $CONFIG_FILES in
+  *\'*) eval set x "$CONFIG_FILES" ;;
+  *)   set x $CONFIG_FILES ;;
+  esac
+  shift
+  for mf
+  do
+    # Strip MF so we end up with the name of the file.
+    mf=`echo "$mf" | sed -e 's/:.*$//'`
+    # Check whether this is an Automake generated Makefile or not.
+    # We used to match only the files named 'Makefile.in', but
+    # some people rename them; so instead we look at the file content.
+    # Grep'ing the first line is not enough: some people post-process
+    # each Makefile.in and add a new line on top of each file to say so.
+    # Grep'ing the whole file is not good either: AIX grep has a line
+    # limit of 2048, but all sed's we know have understand at least 4000.
+    if sed -n 's,^#.*generated by automake.*,X,p' "$mf" | grep X >/dev/null 2>&1; then
+      dirpart=`AS_DIRNAME("$mf")`
+    else
+      continue
+    fi
+    # Extract the definition of DEPDIR, am__include, and am__quote
+    # from the Makefile without running 'make'.
+    DEPDIR=`sed -n 's/^DEPDIR = //p' < "$mf"`
+    test -z "$DEPDIR" && continue
+    am__include=`sed -n 's/^am__include = //p' < "$mf"`
+    test -z "$am__include" && continue
+    am__quote=`sed -n 's/^am__quote = //p' < "$mf"`
+    # Find all dependency output files, they are included files with
+    # $(DEPDIR) in their names.  We invoke sed twice because it is the
+    # simplest approach to changing $(DEPDIR) to its actual value in the
+    # expansion.
+    for file in `sed -n "
+      s/^$am__include $am__quote\(.*(DEPDIR).*\)$am__quote"'$/\1/p' <"$mf" | \
+	 sed -e 's/\$(DEPDIR)/'"$DEPDIR"'/g'`; do
+      # Make sure the directory exists.
+      test -f "$dirpart/$file" && continue
+      fdir=`AS_DIRNAME(["$file"])`
+      AS_MKDIR_P([$dirpart/$fdir])
+      # echo "creating $dirpart/$file"
+      echo '# dummy' > "$dirpart/$file"
+    done
+  done
+}
+])# _AM_OUTPUT_DEPENDENCY_COMMANDS
+
+
+# AM_OUTPUT_DEPENDENCY_COMMANDS
+# -----------------------------
+# This macro should only be invoked once -- use via AC_REQUIRE.
+#
+# This code is only required when automatic dependency tracking
+# is enabled.  FIXME.  This creates each '.P' file that we will
+# need in order to bootstrap the dependency handling code.
+AC_DEFUN([AM_OUTPUT_DEPENDENCY_COMMANDS],
+[AC_CONFIG_COMMANDS([depfiles],
+     [test x"$AMDEP_TRUE" != x"" || _AM_OUTPUT_DEPENDENCY_COMMANDS],
+     [AMDEP_TRUE="$AMDEP_TRUE" ac_aux_dir="$ac_aux_dir"])
+])
+
 # Do all the work for Automake.                             -*- Autoconf -*-
 
-# Copyright (C) 1996-2014 Free Software Foundation, Inc.
+# Copyright (C) 1996-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -377,7 +642,7 @@ for _am_header in $config_headers :; do
 done
 echo "timestamp for $_am_arg" >`AS_DIRNAME(["$_am_arg"])`/stamp-h[]$_am_stamp_count])
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -398,7 +663,7 @@ if test x"${install_sh+set}" != xset; then
 fi
 AC_SUBST([install_sh])])
 
-# Copyright (C) 2003-2014 Free Software Foundation, Inc.
+# Copyright (C) 2003-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -417,9 +682,59 @@ fi
 rmdir .tst 2>/dev/null
 AC_SUBST([am__leading_dot])])
 
+# Check to see how 'make' treats includes.	            -*- Autoconf -*-
+
+# Copyright (C) 2001-2017 Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# AM_MAKE_INCLUDE()
+# -----------------
+# Check to see how make treats includes.
+AC_DEFUN([AM_MAKE_INCLUDE],
+[am_make=${MAKE-make}
+cat > confinc << 'END'
+am__doit:
+	@echo this is the am__doit target
+.PHONY: am__doit
+END
+# If we don't find an include directive, just comment out the code.
+AC_MSG_CHECKING([for style of include used by $am_make])
+am__include="#"
+am__quote=
+_am_result=none
+# First try GNU make style include.
+echo "include confinc" > confmf
+# Ignore all kinds of additional output from 'make'.
+case `$am_make -s -f confmf 2> /dev/null` in #(
+*the\ am__doit\ target*)
+  am__include=include
+  am__quote=
+  _am_result=GNU
+  ;;
+esac
+# Now try BSD make style include.
+if test "$am__include" = "#"; then
+   echo '.include "confinc"' > confmf
+   case `$am_make -s -f confmf 2> /dev/null` in #(
+   *the\ am__doit\ target*)
+     am__include=.include
+     am__quote="\""
+     _am_result=BSD
+     ;;
+   esac
+fi
+AC_SUBST([am__include])
+AC_SUBST([am__quote])
+AC_MSG_RESULT([$_am_result])
+rm -f confinc confmf
+])
+
 # Fake the existence of programs that GNU maintainers use.  -*- Autoconf -*-
 
-# Copyright (C) 1997-2014 Free Software Foundation, Inc.
+# Copyright (C) 1997-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -458,7 +773,7 @@ fi
 
 # Helper functions for option handling.                     -*- Autoconf -*-
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -487,9 +802,73 @@ AC_DEFUN([_AM_SET_OPTIONS],
 AC_DEFUN([_AM_IF_OPTION],
 [m4_ifset(_AM_MANGLE_OPTION([$1]), [$2], [$3])])
 
+# Copyright (C) 1999-2017 Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# _AM_PROG_CC_C_O
+# ---------------
+# Like AC_PROG_CC_C_O, but changed for automake.  We rewrite AC_PROG_CC
+# to automatically call this.
+AC_DEFUN([_AM_PROG_CC_C_O],
+[AC_REQUIRE([AM_AUX_DIR_EXPAND])dnl
+AC_REQUIRE_AUX_FILE([compile])dnl
+AC_LANG_PUSH([C])dnl
+AC_CACHE_CHECK(
+  [whether $CC understands -c and -o together],
+  [am_cv_prog_cc_c_o],
+  [AC_LANG_CONFTEST([AC_LANG_PROGRAM([])])
+  # Make sure it works both with $CC and with simple cc.
+  # Following AC_PROG_CC_C_O, we do the test twice because some
+  # compilers refuse to overwrite an existing .o file with -o,
+  # though they will create one.
+  am_cv_prog_cc_c_o=yes
+  for am_i in 1 2; do
+    if AM_RUN_LOG([$CC -c conftest.$ac_ext -o conftest2.$ac_objext]) \
+         && test -f conftest2.$ac_objext; then
+      : OK
+    else
+      am_cv_prog_cc_c_o=no
+      break
+    fi
+  done
+  rm -f core conftest*
+  unset am_i])
+if test "$am_cv_prog_cc_c_o" != yes; then
+   # Losing compiler, so override with the script.
+   # FIXME: It is wrong to rewrite CC.
+   # But if we don't then we get into trouble of one sort or another.
+   # A longer-term fix would be to have automake use am__CC in this case,
+   # and then we could set am__CC="\$(top_srcdir)/compile \$(CC)"
+   CC="$am_aux_dir/compile $CC"
+fi
+AC_LANG_POP([C])])
+
+# For backward compatibility.
+AC_DEFUN_ONCE([AM_PROG_CC_C_O], [AC_REQUIRE([AC_PROG_CC])])
+
+# Copyright (C) 2001-2017 Free Software Foundation, Inc.
+#
+# This file is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# AM_RUN_LOG(COMMAND)
+# -------------------
+# Run COMMAND, save the exit status in ac_status, and log it.
+# (This has been adapted from Autoconf's _AC_RUN_LOG macro.)
+AC_DEFUN([AM_RUN_LOG],
+[{ echo "$as_me:$LINENO: $1" >&AS_MESSAGE_LOG_FD
+   ($1) >&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD
+   ac_status=$?
+   echo "$as_me:$LINENO: \$? = $ac_status" >&AS_MESSAGE_LOG_FD
+   (exit $ac_status); }])
+
 # Check to make sure that the build environment is sane.    -*- Autoconf -*-
 
-# Copyright (C) 1996-2014 Free Software Foundation, Inc.
+# Copyright (C) 1996-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -570,7 +949,7 @@ AC_CONFIG_COMMANDS_PRE(
 rm -f conftest.file
 ])
 
-# Copyright (C) 2009-2014 Free Software Foundation, Inc.
+# Copyright (C) 2009-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -630,7 +1009,7 @@ AC_SUBST([AM_BACKSLASH])dnl
 _AM_SUBST_NOTMAKE([AM_BACKSLASH])dnl
 ])
 
-# Copyright (C) 2001-2014 Free Software Foundation, Inc.
+# Copyright (C) 2001-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -658,7 +1037,7 @@ fi
 INSTALL_STRIP_PROGRAM="\$(install_sh) -c -s"
 AC_SUBST([INSTALL_STRIP_PROGRAM])])
 
-# Copyright (C) 2006-2014 Free Software Foundation, Inc.
+# Copyright (C) 2006-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -677,7 +1056,7 @@ AC_DEFUN([AM_SUBST_NOTMAKE], [_AM_SUBST_NOTMAKE($@)])
 
 # Check how to create a tarball.                            -*- Autoconf -*-
 
-# Copyright (C) 2004-2014 Free Software Foundation, Inc.
+# Copyright (C) 2004-2017 Free Software Foundation, Inc.
 #
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
@@ -808,235 +1187,9 @@ AC_SUBST([am__tar])
 AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
-# MST_POD_GEN_DOCS
-# ----------------
-#
-#  Find Pod conversion programs to generate documentation
-AC_DEFUN([MST_POD_GEN_DOCS],
-[
-AC_CHECK_PROG([POD2MAN],[pod2man],[yes],[no])
-AM_CONDITIONAL([MST_POD_GEN_DOCS_MAN],[test $POD2MAN = yes])
-AM_COND_IF([MST_POD_GEN_DOCS_MAN],
-	   [],
-	   [AC_MSG_WARN( "unable to generate manual pages; will install distributed version" )
-	   ])
-
-
-AC_CHECK_PROG([POD2HTML],[pod2html],[yes],[no])
-AM_CONDITIONAL([MST_POD_GEN_DOCS_HTML],[test $POD2HTML = yes])
-AM_COND_IF([MST_POD_GEN_DOCS_HTML],
-	   [],
-	   [AC_MSG_WARN( "unable to generate HTML documentation; will install distributed version" )
-	   ])
-
-AC_CHECK_PROG([POD2PDF],[pod2pdf],[yes],[no])
-AM_CONDITIONAL([HAVE_POD2PDF],[test $POD2PDF = yes])
-
-# if pod2pdf is not available, use pod2man, groff, and ps2pdf
-doc_gen_pdf_from_man_ps=no
-AM_COND_IF([HAVE_POD2PDF],
-	   [],
-	   [AM_COND_IF([MST_POD_GEN_DOCS_MAN],
-	               [AC_CHECK_PROG([GROFF],[groff],[yes],[no])
-		        AS_IF([test $GROFF = yes],
-			      [AC_CHECK_PROG([PS2PDF],[ps2pdf],[yes],[no])
-			       AS_IF([test $PS2PDF = yes],
-			       	     [doc_gen_pdf_from_man_ps=yes]
-                                    )
-			      ],
-			)
-		       ]
-	    )
-           ]
-)
-AM_CONDITIONAL([MST_POD_GEN_DOCS_PDF_MAN_PS],[test $doc_gen_pdf_from_man_ps = yes])
-AM_CONDITIONAL([MST_POD_GEN_DOCS_PDF],[test $POD2PDF = yes -o $doc_gen_pdf_from_man_ps = yes])
-
-AM_COND_IF([MST_POD_GEN_DOCS_PDF],
-	   [],
-           [AC_MSG_WARN( "unable to generate PDF documentation; will install distributed version" )
-           ]
-)
-
-]) # MST_POD_GEN_DOCS
-
-AC_DEFUN([MST_PROG_LUA_MODULES],[dnl
-
-m4_define([mst_lua_modules])
-m4_foreach([mst_lua_module], m4_split(m4_normalize([$1])),
-	  [
-	   m4_append([mst_lua_modules],[']mst_lua_module[' ])
-          ])
-
-# Make sure we have perl
-if test -z "$LUA"; then
-   AC_PATH_PROG(LUA,lua)
-fi
-
-if test "x$LUA" != x; then
-   mst_lua_modules_failed=0
-  for mst_lua_module in mst_lua_modules; do
-
-    mst_lua_modulex=`echo $mst_lua_module | sed "s/\./_/g"`
-
-    AC_CACHE_CHECK([for lua module $mst_lua_module], [mst_cv_lua_$mst_lua_modulex],
-                   [eval mst_cv_lua_$mst_lua_modulex=no
-		     $LUA -l $mst_lua_module -e 'return' 2>/dev/null \
-		       && eval mst_cv_lua_$mst_lua_modulex=yes
-		   ]
-		   )
-    if eval test "x\${mst_cv_lua_$mst_lua_modulex}" = "xno" ; then
-      mst_lua_modules_failed=1
-    fi
-
-  done
-
-  # Run optional shell commands
-  if test "$mst_lua_modules_failed" = 0; then
-    :
-    $2
-  else
-    :
-    $3
-  fi
-else
-  AC_MSG_WARN(could not find lua)
-fi])dnl
-
-
-# MST_TESTDEP_SETUP
-#------------------
-# Perform setup steps for dependencies needed to run tests
-# By default missing test dependencies results in a fatal error.
-# This routine provides a configure switch to make them optional,
-# as well as creating the variables which will hold state information
-#
-# Use MST_TESTDEP_TEST and MST_TESTDEP_FLAG to update the state,
-# and MST_TESTDEP_STATUS to report on the final status of the test
-# dependencies (and die if necessary)
-AC_DEFUN([MST_TESTDEP_SETUP],
-[
- AC_ARG_ENABLE(testdeps,
-	AC_HELP_STRING([--enable-testdeps],
-		       [missing test dependencies are a fatal error. [[default=yes]]]),
-	[MST_REQUIRE_TESTDEPS="$enableval"],
-	[MST_REQUIRE_TESTDEPS=yes] )
-
- # normalize flag
- test "$MST_REQUIRE_TESTDEPS" != no && MST_REQUIRE_TESTDEPS=yes
-
- MST_HAVE_TESTDEPS=
-
-])# MST_TESTDEP_SETUP
-
-
-# MST_TESTDEP_TEST(command, message)
-#-----------------------------------
-# Run the command.  If it returns false, report that the test dependency
-# has failed and update the global dependency state.
-AC_DEFUN([MST_TESTDEP_TEST],
-[AC_REQUIRE([MST_TESTDEP_SETUP])
- AS_IF( [$1],
-	[ test "$MST_HAVE_TESTDEPS" != no && MST_HAVE_TESTDEPS=yes ],
-	[
-	  MST_HAVE_TESTDEPS=no
-	  m4_ifnblank([$2],[AC_MSG_WARN([$2: Missing test dependency])])
-	]
-      )
-])# MST_TESTDEP_TEST
-
-# MST_TESTDEP_FLAG( flag value, message)
-#---------------------------------------
-# If the flag value is "no", report that the test dependency has failed
-# and update the global dependency state.
-AC_DEFUN([MST_TESTDEP_FLAG],
-[
-  MST_TESTDEP_TEST([test "$1" != no], [$2])
-])# MST_TESTDEP_FLAG
-
-
-# MST_TESTDEP_STATUS
-#-------------------
-# If any test dependencies have failed, report that.  Exit with error
-# unless --disable-testdeps was passed to configure.
-# Creates and automake conditional HAVE_TESTDEPS which reflects the
-# state of test dependencies
-AC_DEFUN([MST_TESTDEP_STATUS],
-[AC_REQUIRE([MST_TESTDEP_SETUP])
-  if  test "$MST_HAVE_TESTDEPS" = no ; then
-    if test $MST_REQUIRE_TESTDEPS = yes ; then
-	AC_MSG_ERROR([Missing test dependencies.  Use --disable-testdeps to ignore])
-    else
-	AC_MSG_WARN([Missing test dependencies.  Some test will not be run])
-    fi
-
-  fi
- AM_CONDITIONAL( HAVE_TEST_DEPS, test "$MST_HAVE_TESTDEPS" != no)
-])# MST_TESTDEP_STATUS
-
-
-
-# MST_PROG_TESTPERL
-# -----------------
-# Check if Perl is available.  Sets the global test dependency state.
-# Sets the AM_CONDITIONAL HAVE_TESTPERL
-AC_DEFUN([MST_PROG_TESTPERL],
-[AC_REQUIRE([MST_TESTDEP_SETUP])
- AC_PATH_PROG(PERL,perl)
- MST_TESTDEP_TEST( [test -n "$PERL"], [Can't find Perl])
- AM_CONDITIONAL( HAVE_TESTPERL, [test -n "$PERL"] )
-])# MST_PROG_TESTPERL
-
-
-# MST_PROG_TESTSHELL
-# -------------------
-# Check if an acceptable shell (bash, ksh) is available.
-# Sets the global test dependency state.
-# Sets the AM_CONDITIONAL HAVE_TESTSHELL
-AC_DEFUN([MST_PROG_TESTSHELL],
-[AC_ARG_VAR([TESTSHELL],[shell used to run tests])
- if test "x$ac_cv_env_TESTSHELL_set" != "xset"; then
-    AC_MSG_NOTICE([checking for a compatible test shell])
-    AC_PATH_PROG(BASHELL,bash)
-    TESTSHELL="$BASHELL"
-    if test -z "$TESTSHELL"; then
-      AC_PATH_PROG(KSHELL,ksh)
-      TESTSHELL="$KSHELL"
-    fi
-    MST_TESTDEP_TEST([test -n "$TESTSHELL"],[Can't find ksh or bash])
- else
-   AC_MSG_NOTICE([using $TESTSHELL as the test shell])
- fi
- test -n "$TESTSHELL" && test ! -x "$TESTSHELL" \
-	  && AC_MSG_ERROR( [testshell $TESTSHELL is not an executable] )
- AM_CONDITIONAL( HAVE_TESTSHELL, [test -n "$TESTSHELL"] )
-])# MST_CHECK_TESTSHELL
-
-# MST_CHECK_TESTPROG(program)
-#-----------------------------------
-# check if the program exists
-AC_DEFUN([MST_CHECK_TESTPROG],
-[AC_REQUIRE([MST_TESTDEP_SETUP])
- mst_check_testprog=no
-
- m4_define(mst_check_testprog,m4_normalize([$1]))
- AS_VAR_PUSHDEF(mst_check_testprog_var,mst_check_testprog_var_[]mst_check_testprog)
- AC_CHECK_PROG(mst_check_testprog_var,mst_check_testprog,[yes],[no])
- MST_TESTDEP_FLAG($mst_check_testprog_var)
- m4_undefine([mst_check_testprog_var])
- m4_undefine([mst_check_testprog])
-
-])# MST_CHECK_TESTPROG
-
-# MST_CHECK_TEST_PKG_MODULES(VARIABLE-PREFIX, MODULES)
-#-----------------------------------
-# check if the modules exist. uses pkg-config's PKG_CHECK_MODULES to
-# see if the modules exist, but instead of aborting on error, sets the
-# MST_TESTDEP flag appropriately
-AC_DEFUN([MST_CHECK_TEST_PKG_MODULES],
-[PKG_CHECK_MODULES([$1],[$2],
-	[MST_TESTDEP_FLAG([yes])],
-	[MST_TESTDEP_FLAG([no])])
-])# MST_CHECK_TEST_PKG_MODULES
-
-
+m4_include([m4/ax_lua.m4])
+m4_include([m4/mst_check_lua.m4])
+m4_include([m4/mst_pod_gen_docs.m4])
+m4_include([m4/mst_prog_lua_modules.m4])
+m4_include([m4/mst_test_support.m4])
+m4_include([m4/pkg.m4])
