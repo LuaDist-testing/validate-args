@@ -1,8 +1,168 @@
-2012-01-13  Diab Jerius  <dj@jeeves.cfa.harvard.edu>
+2016-09-06 15:36 -0400  Diab Jerius  <djerius@cfa.harvard.edu>  (3f1c9fce458d [tip])
 
-	Tag 1.5.4
+	* .hgtags:
+	release
 
-2012-01-12 18:19 -0500  djerius  <djerius@cfa.harvard.edu>  (20cca65ad0d7 [tip])
+2016-09-06 15:36 -0400  Diab Jerius  <djerius@cfa.harvard.edu>  (534c0c0b0ba6 [1.5.8])
+
+	* NEWS, configure.ac:
+	update logs and version for release
+
+2016-09-06 15:31 -0400  Diab Jerius  <djerius@cfa.harvard.edu>  (b71a4de68fee)
+
+	* tests/asserts.lua: deleted file.
+	* rockspec.in, tests/Makefile.am, tests/asserts.lua,
+	tests/excludes.lua, tests/inplace.lua, tests/multiple.lua,
+	tests/mutate.lua, tests/named.lua, tests/nested.lua,
+	tests/object.lua, tests/positional.lua, tests/requires.lua:
+	luassert >= 1.7.7 provides matches; remove home-grown version
+
+2016-09-06 15:29 -0400  Diab Jerius  <djerius@cfa.harvard.edu>  (c5b620f8aff6)
+
+	* tests/multiple.lua, validate/args.lua:
+	incorrect method used to output formatted errors; used msg instead
+	of fmt
+
+2016-09-06 15:28 -0400  Diab Jerius  <djerius@cfa.harvard.edu>  (e756827e072a)
+
+	* tests/deepcompare.lua: deleted file.
+	* tests/deepcompare.lua:
+	tests/deepcompare.lua hasn't been used since switching to busted;
+	remove it
+
+2015-07-01 10:59 -0400  djerius  <djerius@cfa.harvard.edu>  (801a276bc0cb)
+
+	* .hgtags:
+	Added tag 1.5.7 for changeset 7b914a0d4703
+
+2015-07-01 10:54 -0400  djerius  <djerius@cfa.harvard.edu>  (7b914a0d4703 [1.5.7])
+
+	* NEWS, configure.ac:
+	update logs and version for release
+
+2015-07-01 10:32 -0400  djerius  <djerius@cfa.harvard.edu>  (c916f3f8896a)
+
+	* validate/args.lua, validate/inplace.lua:
+	first cut at Lua 5.2+ compatibility
+
+2015-07-01 09:57 -0400  djerius  <djerius@cfa.harvard.edu>  (0695c96f799f)
+
+	* m4/mst_test_support.m4, tests/asserts.lua, tests/setup.lua: new
+	file.
+	* tests/utils.lua: deleted file.
+	* configure.ac, m4/mst_test_support.m4, tests/Makefile.am,
+	tests/asserts.lua, tests/callback.lua, tests/constraints.lua,
+	tests/default_spec.lua, tests/defaults.lua, tests/deffunc.lua,
+	tests/excludes.lua, tests/inplace.lua, tests/multiple.lua,
+	tests/mutate.lua, tests/name.lua, tests/named.lua, tests/nested.lua,
+	tests/object.lua, tests/ordered.lua, tests/positional.lua,
+	tests/requires.lua, tests/setup.lua, tests/special.lua,
+	tests/utils.lua, tests/vtypes.lua:
+	switch testing framework from lunatest to busted
+
+2015-06-30 23:17 -0400  djerius  <djerius@cfa.harvard.edu>  (be261ba3cdbc)
+
+	* bootstrap, m4/Makefile.am, m4/mst_pod_gen_docs.m4,
+	m4/mst_prog_lua_modules.m4: new file.
+	* Makefile.am, bootstrap, configure.ac, m4/Makefile.am,
+	m4/mst_pod_gen_docs.m4, m4/mst_prog_lua_modules.m4,
+	tests/Makefile.am:
+	update build infrastructure to be standalone
+
+2015-05-28 10:49 -0400  Diab Jerius  <djerius@cfa.harvard.edu>  (ae62387aadee)
+
+	* snippets/lua_compile.mk, snippets/pod_html.mk, snippets/pod_man.mk,
+	snippets/pod_pdf.mk:
+	update build infrastructure
+
+2015-05-28 10:35 -0400  Diab Jerius  <djerius@cfa.harvard.edu>  (fe06649735fa)
+
+	* doc/validate.args.pod:
+	fix pod error
+
+2015-05-28 10:34 -0400  Diab Jerius  <djerius@cfa.harvard.edu>  (08bbc372bc88)
+
+	* ChangeLog, INSTALL: deleted file.
+	* ChangeLog, INSTALL:
+	don't track ChangeLog and INSTALL; they are automatically generated
+
+2015-04-29 17:29 -0400  Diab Jerius  <djerius@cfa.harvard.edu>  (936929bacc31)
+
+	* snippets/pod_man.mk, snippets/pod_pdf.mk: new file.
+	* snippets/pod_docs.ac, snippets/pod_man_init.mk,
+	snippets/pod_manl.mk, snippets/pod_ps_init.mk, snippets/pod_psl.mk:
+	deleted file.
+	* configure.ac, doc/Makefile.am, snippets/create_am_macros.mk,
+	snippets/lua_compile.mk, snippets/lua_lib.mk, snippets/pod_docs.ac,
+	snippets/pod_html.mk, snippets/pod_man.mk, snippets/pod_man_init.mk,
+	snippets/pod_manl.mk, snippets/pod_pdf.mk, snippets/pod_ps_init.mk,
+	snippets/pod_psl.mk, snippets/prog_pod.mk,
+	snippets/prog_pod_base.mk:
+	update build infrastructure
+
+2012-02-10 11:40 -0500  djerius  <djerius@cfa.harvard.edu>  (fd6070aa00b7)
+
+	* .hgtags:
+	Added tag 1.5.6 for changeset 962f5e7a7268
+
+2012-02-10 11:40 -0500  djerius  <djerius@cfa.harvard.edu>  (962f5e7a7268 [1.5.6])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and version for release
+
+2012-02-09 15:31 -0500  djerius  <djerius@cfa.harvard.edu>  (55bb56842558)
+
+	* doc/validate.args.pod, tests/ordered.lua, validate/args.lua:
+	fix fatal error if a vtable is ordered and it contains a mutating
+	specification
+
+2012-01-25 16:37 -0500  djerius  <djerius@cfa.harvard.edu>  (0b0d49eb3b1e)
+
+	* .hgtags:
+	Added tag 1.5.5 for changeset 43ecb0e7671a
+
+2012-01-25 16:37 -0500  djerius  <djerius@cfa.harvard.edu>  (43ecb0e7671a [1.5.5])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and version for release
+
+2012-01-23 11:25 -0500  djerius  <djerius@cfa.harvard.edu>  (5a809d627fd0)
+
+	* tests/mutate.lua, validate/args.lua:
+	incorrectly handled a false return from mutating validation spec
+	functions
+
+	resolve_spec() returned true in the event of a false success value
+	of the mutating validation spec function. now it returns that value.
+	tests add to trap the error.
+
+2012-01-23 11:10 -0500  djerius  <djerius@cfa.harvard.edu>  (f89a566bd15f)
+
+	* validate/args.lua:
+	remove redundant validity check on resolve_spec result (resolve_spec
+	performs the same check)
+
+2012-01-20 15:37 -0500  djerius  <djerius@cfa.harvard.edu>  (f572d7ae905b)
+
+	* doc/validate.args.pod, tests/default_spec.lua, validate/args.lua:
+	catch-all specification functions may now return an error message
+
+2012-01-13 10:07 -0500  djerius  <djerius@cfa.harvard.edu>  (9b9a82051335)
+
+	* .hgtags:
+	Added tag 1.5.4 for changeset 1d9a47857288
+
+2012-01-13 10:07 -0500  djerius  <djerius@cfa.harvard.edu>  (1d9a47857288 [1.5.4])
+
+	* ChangeLog, NEWS, configure.ac:
+	update logs and version for release
+
+2012-01-12 18:21 -0500  djerius  <djerius@cfa.harvard.edu>  (5cfcf35df7b2)
+
+	* doc/validate.args.pod:
+	minor doc fixes
+
+2012-01-12 18:19 -0500  djerius  <djerius@cfa.harvard.edu>  (20cca65ad0d7)
 
 	* validate/args.lua:
 	remove debug code which causes run time failure
@@ -84,8 +244,8 @@
 
 	The new default behavior is that positional arguments may not be
 	nil. A new specification, allow_nil, may be used to indicate that
-	nil values are permitted. The not_nil specification is now
-	redundant and deprecated.
+	nil values are permitted. The not_nil specification is now redundant
+	and deprecated.
 
 2011-08-25 16:31 -0400  djerius  <djerius@cfa.harvard.edu>  (204bd7dc39a9)
 
@@ -790,8 +950,8 @@
 
 	* new entry into module, validate_tbl(), which works on tables
 	rather than on (...) . There is sufficient bizareness in the (...)
-	handling that it popped up some unseen behaviors elsewhere. It
-	turns out that most of the code in validate_opts() is to deal with
+	handling that it popped up some unseen behaviors elsewhere. It turns
+	out that most of the code in validate_opts() is to deal with
 	positional arguments in (...). This seems odd.
 
 
@@ -808,8 +968,8 @@
 	added group operations, fixed validation of nested validation specs
 
 	* now can make "group" based decisions; new syntax uses a pseudo-
-	argument (%one_of and %oneplus_of). somewhat clunky, but no point
-	in writing a generic decision mechanism just yet
+	argument (%one_of and %oneplus_of). somewhat clunky, but no point in
+	writing a generic decision mechanism just yet
 
 	* validation of nested validation specs was not being done (at
 	all?). fixed
@@ -963,9 +1123,8 @@
 
 	* mstbuild.cfg: deleted file.
 	* mstbuild.cfg, snippets/lib_lua.ac:
-	update snippet to put Lua module in ../share/lua. byte-code
-	compiled files should be in exec, so remove local hints to the
-	contrary
+	update snippet to put Lua module in ../share/lua. byte-code compiled
+	files should be in exec, so remove local hints to the contrary
 
 2010-09-10 17:20 -0400  djerius  <djerius@cfa.harvard.edu>  (bc6a5e487c4b)
 

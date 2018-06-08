@@ -1,175 +1,174 @@
-module( ..., package.seeall )
-
 local va = require( 'validate.args' )
 local validate = va.validate
 local validate_opts = va.validate_opts
 
-require 'string'
+setup = require 'setup'
 
-setup = _G.setup
+describe( "multiple", function ()
 
-function test_scalar_multiple ()
+    before_each( setup )
 
-   local spec = { x = { multiple = false } }
-   local ok, foo = validate( spec, { x = 3 } )
+    it( "scalar multiple", function ()
 
-   assert_true( ok, foo )
-   assert_equal( 3, foo.x )
-end
+        local spec = { x = { multiple = false } }
+	local ok, rv = validate( spec, { x = 3 } )
 
-function test_table_multiple_scalar_value ()
+	assert.is_true( ok )
+	assert.is.same( { x = 3 } , rv )
+     end)
 
-   local spec = { x = { multiple = true } }
+    it( " table multiple scalar value", function ()
 
-   local ok, foo = validate( spec, { x = 3 } )
+        local spec = { x = { multiple = true } }
 
-   assert_false( ok )
-   assert_match( 'must be a table', foo )
-end
+	local ok, rv = validate( spec, { x = 3 } )
 
-function test_array_multiple ()
+	assert.is_false( ok )
+	assert.matches( 'must be a table', rv )
+     end)
 
-   local spec = { x = { type = 'posint',
-			multiple = true,
-		     }
-	       }
-   local ok, foo = validate( spec, { x = { 1, 2, 3 } } )
+    it( "array multiple", function ()
 
-   assert_true( ok, foo )
+	local spec = { x = { type = 'posint',
+			     multiple = true,
+			  }
+		    }
+	local ok, rv = validate( spec, { x = { 1, 2, 3 } } )
 
-   assert_equal( 3, foo.x[3] )
+	assert.is_true( ok )
 
-end
+	assert.is.same( { x = { 1, 2, 3 } }, rv  )
 
-function test_nested_array_multiple ()
+     end)
 
-   local spec = { x = { vtable = { { type = 'posint' }, { type = 'posint' } },
-			multiple = true,
-		     }
-	       }
-   local ok, foo = validate( spec, { x = {
-					{ 1, 2 },
-					{ 4, 5 },
-				     }
-				  }
-			  )
+    it( "nested array multiple", function ()
 
-   assert_true( ok, foo )
+	local spec = { x = { vtable = { { type = 'posint' }, { type = 'posint' } },
+			     multiple = true,
+			  }
+		    }
+	local ok, rv = validate( spec, { x = {
+					     { 1, 2 },
+					     { 4, 5 },
+					  }
+				       }
+			       )
 
-   assert_equal( 2, foo.x[1][2] )
-   assert_equal( 5, foo.x[2][2] )
+	assert.is_true( ok )
 
-end
+	assert.is.same( { x = { { 1, 2 }, { 4, 5 } } }, rv )
 
-function test_nelem_bounds ()
+     end)
 
-   local spec = { x = { type = 'posint',
-			multiple = { min = 3, max = 5 }
-		     }
-	       }
+    it( "nelem bounds", function ()
 
-   local ok, foo = validate( spec, { x = { 1, 6 }  } )
+	local spec = { x = { type = 'posint',
+			     multiple = { min = 3, max = 5 }
+			  }
+		    }
 
-   assert_false( ok, foo )
-   assert_match( 'too few', foo )
+	local ok, rv = validate( spec, { x = { 1, 6 }  } )
+	assert.is_false( ok )
+	assert.matches( 'too few.+expected 3.+got 2', rv )
 
-   local ok, foo = validate( spec, { x = { 1, 2, 3 }  } )
-   assert_true( ok, foo )
+	local ok, rv = validate( spec, { x = { 1, 2, 3 }  } )
+	assert.is_true( ok )
 
-   local ok, foo = validate( spec, { x = { 1, 2, 3, 4}  } )
-   assert_true( ok, foo )
+	local ok, rv = validate( spec, { x = { 1, 2, 3, 4}  } )
+	assert.is_true( ok )
 
-   local ok, foo = validate( spec, { x = { 1, 2, 3, 4, 5 }  } )
-   assert_true( ok, foo )
+	local ok, rv = validate( spec, { x = { 1, 2, 3, 4, 5 }  } )
+	assert.is_true( ok )
 
-   local ok, foo = validate( spec, { x = { 1, 2, 3, 4, 5, 6 }  } )
+	local ok, rv = validate( spec, { x = { 1, 2, 3, 4, 5, 6 }  } )
 
-   assert_false( ok, foo )
-   assert_match( 'too many', foo )
+	assert.is_false( ok )
+	assert.matches( 'too many.+expected 5.+got 6', rv )
 
-end
+     end)
 
-function test_exact_nelem ()
+    it( "exact nelem", function ()
 
-   local spec = { x = { type = 'posint',
-			multiple = { n = 4 }
-		     }
-	       }
+        local spec = { x = { type = 'posint',
+			     multiple = { n = 4 }
+			  }
+		    }
 
-   local ok, foo = validate( spec, { x = { 1, 2 }  } )
+	local ok, rv = validate( spec, { x = { 1, 2 }  } )
+	assert.is_false( ok )
+	assert.matches( 'incorrect.+expected 4.+got 2', rv )
 
-   assert_false( ok, foo )
-   assert_match( 'incorrect number', foo )
+	local ok, rv = validate( spec, { x = { 1, 2, 3, 4 }  } )
+	assert.is_true( ok )
 
-   local ok, foo = validate( spec, { x = { 1, 2, 3, 4 }  } )
+     end)
 
-   assert_true( ok, foo )
+    it( "allow scalar", function ()
 
-end
+        local spec = { x = { type = 'posint',
+			     multiple = { n = 4 }
+			  }
+		    }
 
-function test_allow_scalar ()
+	local ok, rv = validate( spec, { x =  1 } )
 
-   local spec = { x = { type = 'posint',
-			multiple = { n = 4 }
-		     }
-	       }
+	assert.is_false( ok )
+	assert.matches( 'must be a table', rv )
 
-   local ok, foo = validate( spec, { x =  1 } )
+	local spec = { x = { type = 'posint',
+			     multiple = { allow_scalar = true, n = 4 }
+			  }
+		    }
 
-   assert_false( ok, foo )
-   assert_match( 'must be a table', foo )
+	local ok, rv = validate( spec, { x = 1 } )
+	assert.is_false( ok )
+	assert.matches( 'incorrect.+expected 4.+got 1', rv )
 
-   local spec = { x = { type = 'posint',
-			multiple = { allow_scalar = true, n = 4 }
-		     }
-	       }
+	local ok, rv = validate( spec, { x = { 1, 2, 3, 4 }  } )
 
-   local ok, foo = validate( spec, { x = 1 } )
-   assert_false( ok, foo )
-   assert_match( 'incorrect number', foo )
-
-   local ok, foo = validate( spec, { x = { 1, 2, 3, 4 }  } )
-
-   assert_true( ok, foo )
+	assert.is_true( ok )
 
 
-end
+     end)
 
-function test_keys ()
+    it( "keys", function ()
 
-   local spec = { x = { type = 'posint',
-			multiple = {
-			   keys = { vfunc = function( val )
-					       if type(val) == 'string' and val:match( '^%a+$' ) then
-						  return true, val
-					       else
-						  return false, "only alpha characters allowed"
-					       end
-					    end,
-				 }
-			},
-		     }
-	       }
+        local spec = { x = { type = 'posint',
+			     multiple = {
+				keys = { vfunc = function( val )
+						    if type(val) == 'string' and val:match( '^%a+$' ) then
+						       return true, val
+						    else
+						       return false, "only alpha characters allowed"
+						    end
+						 end,
+				      }
+			     },
+			  }
+		    }
 
-   local ok, foo = validate( spec, { x = { a = 1, b = 2 }  } )
+	local ok, rv = validate( spec, { x = { a = 1, b = 2 }  } )
 
-   assert_true( ok, foo )
+	assert.is_true( ok )
 
-   local ok, foo = validate( spec, { x = { a1 = 1, b = 2 }  } )
+	local ok, rv = validate( spec, { x = { a1 = 1, b = 2 }  } )
 
-   assert_false( ok, foo )
-   assert_match( 'only alpha', foo )
+	assert.is_false( ok )
+	assert.matches( 'only alpha', rv )
 
-end
+     end)
 
-function test_bad_spec()
-   local spec = { x = { type = 'posint',
-			multiple = 'snack',
-		     }
-	       }
 
-   local ok, foo = pcall( validate, spec, { x = { a = 1, b = 2 }  } )
+    it( "bad spec", function ()
+        local spec = { x = { type = 'posint',
+			     multiple = 'snack',
+			  }
+		    }
 
-   assert_false( ok, foo )
+	local ok, rv = pcall( validate, spec, { x = { a = 1, b = 2 }  } )
 
-end
+	assert.is_false( ok )
+
+     end)
+
+end)

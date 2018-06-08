@@ -22,12 +22,13 @@
 -----
 --- validate.args: Validate function arguments
 
-module( ..., package.seeall )
+io = require 'io'
+table = require 'table'
+string = require 'string'
+math = require 'math'
+unpack = unpack or table.unpack
 
-require 'io'
-require 'table'
-require 'string'
-require 'math'
+local _M = {}
 
 -- iterate over non meta keys
 local function next_notmeta( table, index )
@@ -159,7 +160,7 @@ end
 --------------------------------------------------------------------
 -- Type validator class. Just manages a list of validators.
 
-function posnum ( arg )
+local function posnum ( arg )
    if type(arg) == 'number' and arg > 0 then
       return true, arg
    else
@@ -167,7 +168,7 @@ function posnum ( arg )
    end
 end
 
-function zposnum ( arg )
+local function zposnum ( arg )
    if type(arg) == 'number' and arg >= 0 then
       return true, arg
    else
@@ -175,7 +176,7 @@ function zposnum ( arg )
    end
 end
 
-function posint( arg )
+local function posint( arg )
 
    if type(arg) ~= 'number' then
       return false, "not a positive integer"
@@ -191,7 +192,7 @@ function posint( arg )
 
 end
 
-function zposint( arg )
+local function zposint( arg )
 
    if type(arg) ~= 'number' then
       return false, "not a non-negative integer"
@@ -210,9 +211,9 @@ end
 local TypeCheckValidators = Base:new{
 
    -- various validation functions
-   posnum = posnum,
+   posnum  = posnum,
    zposnum = zposnum,
-   posint = posint,
+   posint  = posint,
    zposint = zposint
 }
 
@@ -318,7 +319,7 @@ end
 -- this is a list of names and an index indicating the
 -- largest valid element
 
-Name = {
+local Name = {
    level = 0,
    name = {},
 }
@@ -565,12 +566,14 @@ local function resolve_spec( spec, arg )
       ok, spec = spec( arg )
 
       if ok and type(spec) ~= 'table' then
-	 return false, '(validation spec function): returned type ' .. type(spec) .. '; expected a table'
+	 return false,    '(validation spec function): returned type '
+	               .. type(spec)
+		       .. '; expected a table'
       end
 
    end
 
-   return true, spec
+   return ok, spec
 
 end
 
@@ -581,7 +584,11 @@ local function order_spec( spec, ordered )
    if ordered then
 
       for k, v in pairs( spec ) do
-	 table.insert( order, { k, v.order } )
+	 table.insert( order, { k,
+				(type(v) == 'table'
+			          and v.order ~=nil
+			          and v.order) or nil
+		       } )
       end
 
 
@@ -793,6 +800,11 @@ function Validate:check_table( name, tspec, arg )
 	       end
 
 	       handled[k] = true
+
+	    elseif spec ~= nil then
+
+	       return false, name:fmt( spec )
+
 	    end
 
 	 end
@@ -1097,15 +1109,15 @@ function Validate:process_arg_spec( name, spec, arg )
       end
 
       if espec.min ~= nil and nelem < espec.min then
-	 return false, name:msg( "too few elements; expected %d, got %d", espec.min, nelem )
+	 return false, name:fmt( "too few elements: expected %d, got %d", espec.min, nelem )
       end
 
       if espec.max ~= nil and nelem > espec.max then
-	 return false, name:msg( "too many elements; expected %d, got %d", espec.min, nelem )
+	 return false, name:fmt( "too many elements: expected %d, got %d", espec.max, nelem )
       end
 
       if espec.n ~= nil and nelem ~= espec.n then
-	 return false, name:msg( "incorrect number of elements; expected %d, got %d", espec.n, nelem )
+	 return false, name:fmt( "incorrect number of elements: expected %d, got %d", espec.n, nelem )
       end
       return true, arg
 
@@ -1402,12 +1414,8 @@ function Validate:validate( tpl, ... )
 
       if not ok then
 
-	 return rfunc( false, name:msg( '(validation spec): ', spec ) )
+	 return rfunc( false, spec )
 
-      elseif type(spec) ~= 'table' then
-
-	 return rfunc( false, name:msg( '(validation spec): expected table or function, got' ,
-					type(arg) ) )
       end
 
       nargs = nargs + 1
@@ -1548,7 +1556,7 @@ local defobj = {}
 --  use_current_types:   if true, uses current (rather than default) types
 --  use_current:         if true, uses current options and types
 
-function new( self, args )
+function _M:new( args )
 
    local ok, args = Validate:validate( { use_current_options = { type = 'boolean', optional = true },
 					 use_current_types   = { type = 'boolean', optional = true },
@@ -1580,21 +1588,21 @@ end
 
 defobj = Validate:new()
 
-function reset( )
+function _M.reset( )
    defobj = Validate:new()
 end
 
-function add_type( ... )
+function _M.add_type( ... )
    return defobj:add_type( ... )
 end
 
-function validate( ... )
+function _M.validate( ... )
    return defobj:validate( ... )
 end
 
 -- these wrappers set options; make sure they don't leak into
 -- the default object by cloning the default object.
-function validate_tbl( ... )
+function _M.validate_tbl( ... )
 
    -- backwards compatibility
    if select('#', ...) == 3 then
@@ -1614,12 +1622,16 @@ function validate_tbl( ... )
 
 end
 
-function validate_opts( opts, ... )
+function _M.validate_opts( opts, ... )
    local obj = defobj:new();
    obj:setopts( opts )
    return obj:validate( ... )
 end
 
-function opts( ... )
+function _M.opts( ... )
    return defobj:setopts( ... )
 end
+
+_M.Name = Name
+
+return _M

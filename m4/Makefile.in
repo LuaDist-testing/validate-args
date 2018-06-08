@@ -23,9 +23,6 @@
 #============================================================================
 # inst_vars.mk
 
-#============================================================================
-# substitute_config_variables.mk
-
 
 
 VPATH = @srcdir@
@@ -100,31 +97,10 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
+TESTS =
 XFAIL_TESTS =
 check_PROGRAMS =
-
-# Test executables to be run
-@HAVE_TEST_DEPS_TRUE@am__append_1 = \
-@HAVE_TEST_DEPS_TRUE@			callback.lua		\
-@HAVE_TEST_DEPS_TRUE@			constraints.lua		\
-@HAVE_TEST_DEPS_TRUE@			defaults.lua		\
-@HAVE_TEST_DEPS_TRUE@			default_spec.lua	\
-@HAVE_TEST_DEPS_TRUE@			deffunc.lua		\
-@HAVE_TEST_DEPS_TRUE@			excludes.lua		\
-@HAVE_TEST_DEPS_TRUE@			inplace.lua		\
-@HAVE_TEST_DEPS_TRUE@			multiple.lua		\
-@HAVE_TEST_DEPS_TRUE@			mutate.lua		\
-@HAVE_TEST_DEPS_TRUE@			named.lua		\
-@HAVE_TEST_DEPS_TRUE@			name.lua		\
-@HAVE_TEST_DEPS_TRUE@			nested.lua		\
-@HAVE_TEST_DEPS_TRUE@			object.lua		\
-@HAVE_TEST_DEPS_TRUE@			ordered.lua		\
-@HAVE_TEST_DEPS_TRUE@			positional.lua		\
-@HAVE_TEST_DEPS_TRUE@			requires.lua		\
-@HAVE_TEST_DEPS_TRUE@			special.lua		\
-@HAVE_TEST_DEPS_TRUE@			vtypes.lua
-
-subdir = tests
+subdir = m4
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/snippets/lib_lua.ac \
 	$(top_srcdir)/configure.ac
@@ -349,11 +325,12 @@ am__set_TESTS_bases = \
 RECHECK_LOGS = $(TEST_LOGS)
 AM_RECURSIVE_TARGETS = check recheck
 TEST_SUITE_LOG = test-suite.log
+TEST_EXTENSIONS = .test
 am__test_logs1 = $(TESTS:=.log)
-TEST_LOGS = $(am__test_logs1:.lua.log=.log)
-LUA_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver
-LUA_LOG_COMPILE = $(LUA_LOG_COMPILER) $(AM_LUA_LOG_FLAGS) \
-	$(LUA_LOG_FLAGS)
+TEST_LOGS = $(am__test_logs1:.test.log=.log)
+TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/test-driver
+TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
+	$(TEST_LOG_FLAGS)
 am__set_b = \
   case '$@' in \
     */*) \
@@ -367,9 +344,7 @@ am__set_b = \
 am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(top_srcdir)/snippets/am_vars.mk \
 	$(top_srcdir)/snippets/create_am_macros.mk \
-	$(top_srcdir)/snippets/inst_vars.mk \
-	$(top_srcdir)/snippets/substitute_config_variables.mk \
-	$(top_srcdir)/test-driver
+	$(top_srcdir)/snippets/inst_vars.mk $(top_srcdir)/test-driver
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -493,96 +468,36 @@ include_HEADERS =
 pkginclude_HEADERS = 
 nobase_include_HEADERS = 
 AM_CPPFLAGS = 
-
-# -----------------------
-# Test stuff
-TESTS = $(am__append_1)
 check_SCRIPTS = 
 
 # sources that must be made prior to compilation
-
-#-------------------------------------------------------------------
-#
-
-# sources that must be made prior to compilation
-BUILT_SOURCES =
+BUILT_SOURCES = 
 
 # extra files to add to the distribution
 
 # extra files to add to the distribution
-EXTRA_DIST = $(TESTS) setup.lua
+EXTRA_DIST = mst_pod_gen_docs.m4
 
 # Files tha make built but that one would want to rebuild
 MOSTLYCLEANFILES = 
 
 # Any other files make built
-
-# Any files make built
-CLEANFILES =
+CLEANFILES = 
 
 # Any files configure built
-
-# Any files configure built
-DISTCLEANFILES =
+DISTCLEANFILES = 
 
 # Any files maintainer built (with autoconf, automake, etc)
-
-# Any files maintainer built(with autoconf, automake, etc)
-MAINTAINERCLEANFILES = Makefile.in
+MAINTAINERCLEANFILES = 
 
 # Extra suffixes for automake
 SUFFIXES = 
-TEST_EXTENSIONS = .lua
-LUA_LOG_COMPILER = $(BUSTED) -o TAP -m '$(srcdir)/?.lua;$(top_srcdir)/?.lua;$$LUA_PATH;;'
-SUBSTITUTE_CONFIG_VARIABLES_MK = 
-
-# this sed statement is used to fill in configuration variables in
-# source (not autotool) files which use the following configuration
-# variables:
-
-# extras from the fans 
-
-#-------------------------------------------------------------------
-# Snippets go after here, unless their docs say otherwise
-DO_SUBST = -e 's,[@]LUA[@],$(LUA),g'
-do_subst = sed \
-		  -e 's,[@]PACKAGE[@],$(PACKAGE),g'			\
-		  -e 's,[@]PACKAGE_VERSION[@],$(PACKAGE_VERSION),g'	\
-		  -e 's,[@]PERL[@],$(PERL),g'				\
-		  -e 's,[@]PERL_USELIB[@],$(PERL_USELIB),g'		\
-		  -e 's,[@]STARTPERL[@],$(STARTPERL),g'			\
-		  -e 's,[@]VERSION[@],$(VERSION),g'			\
-		  -e 's,[@]bindir[@],$(bindir),g'			\
-		  -e 's,[@]datadir[@],$(datadir),g'			\
-		  -e 's,[@]includedir[@],$(includedir),g'		\
-		  -e 's,[@]infodir[@],$(infodir),g'			\
-		  -e 's,[@]libdir[@],$(libdir),g'			\
-		  -e 's,[@]libexecdir[@],$(libexecdir),g'		\
-		  -e 's,[@]localstatedir[@],$(localstatedir),g'		\
-		  -e 's,[@]mandir[@],$(mandir),g'			\
-		  -e 's,[@]sbindir[@],$(sbindir),g'			\
-		  -e 's,[@]sharedstatedir[@],$(sharedstatedir),g'	\
-		  -e 's,[@]sysconfdir[@],$(sysconfdir),g'		\
-		  -e 's,[@]paramdir[@],$(paramdir),g'			\
-		  -e 's,[@]perllibdir[@],$(perllibdir),g'		\
-		  -e 's,[@]pdllibdir[@],$(pdllibdir),g'			\
-		  -e 's,[@]lualibdir[@],$(lualibdir),g'			\
-		  -e 's,[@]pkgdatadir[@],$(pkgdatadir),g'		\
-		  -e 's,[@]pkgvdatadir[@],$(pkgvdatadir),g'		\
-		  -e 's,[@]prefix[@],$(prefix),g'			\
-		  -e 's,[@]program_prefix[@],$(program_prefix),g'	\
-		  -e 's,[@]mst_program_prefix[@],$(mst_program_prefix),g'	\
-		  -e 's,[@]top_builddir[@],$(top_builddir),g'		\
-		  -e 's,[@]top_srcdir[@],$(top_srcdir),g'		\
-		  -e 's,[@]srcdir[@],$(srcdir),g'			\
-		  $(DO_SUBST)
-
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
-.SUFFIXES: .log .lua .trs
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/snippets/create_am_macros.mk $(top_srcdir)/snippets/am_vars.mk $(top_srcdir)/snippets/inst_vars.mk $(top_srcdir)/snippets/substitute_config_variables.mk $(am__configure_deps)
+.SUFFIXES: .log .test .trs
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/snippets/create_am_macros.mk $(top_srcdir)/snippets/am_vars.mk $(top_srcdir)/snippets/inst_vars.mk $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -591,9 +506,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/snippets/create_am_m
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign tests/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign m4/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign tests/Makefile
+	  $(AUTOMAKE) --foreign m4/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -602,7 +517,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)'; \
 	    cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe);; \
 	esac;
-$(top_srcdir)/snippets/create_am_macros.mk $(top_srcdir)/snippets/am_vars.mk $(top_srcdir)/snippets/inst_vars.mk $(top_srcdir)/snippets/substitute_config_variables.mk $(am__empty):
+$(top_srcdir)/snippets/create_am_macros.mk $(top_srcdir)/snippets/am_vars.mk $(top_srcdir)/snippets/inst_vars.mk $(am__empty):
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
@@ -910,12 +825,12 @@ recheck: all $(check_PROGRAMS) $(check_SCRIPTS)
 	        am__force_recheck=am--force-recheck \
 	        TEST_LOGS="$$log_list"; \
 	exit $$?
-.lua.log:
+.test.log:
 	@p='$<'; \
 	$(am__set_b); \
-	$(am__check_pre) $(LUA_LOG_DRIVER) --test-name "$$f" \
+	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
-	$(am__common_driver_flags) $(AM_LUA_LOG_DRIVER_FLAGS) $(LUA_LOG_DRIVER_FLAGS) -- $(LUA_LOG_COMPILE) \
+	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
 
 distdir: $(DISTFILES)
@@ -1089,19 +1004,6 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES \
 
 .PRECIOUS: Makefile
 
-
-# use this as follows:
-#
-# target : Makefile $(srcdir)/target.in
-#	p="$@"; f=$(strip_dir) \
-#	$(do_subst) < $(srcdir)/$$f.in > $$f || { rm $$f ; false ; }
-#
-# additional commands (such as chmod +x $@) may prove useful
-
-%: %.in Makefile
-	p="$@"; f=$(strip_dir) \
-	$(do_subst) < $(srcdir)/$$f.in > $$f
-	chmod +x $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

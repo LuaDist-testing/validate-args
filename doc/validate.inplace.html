@@ -7,237 +7,204 @@
 <link rev="made" href="mailto:none" />
 </head>
 
-<body style="background-color: white">
+<body>
 
 
-<!-- INDEX BEGIN -->
-<div name="index">
-<p><a name="__index__"></a></p>
 
-<ul>
-
-	<li><a href="#name">NAME</a></li>
-	<li><a href="#synopsis">SYNOPSIS</a></li>
-	<li><a href="#description">DESCRIPTION</a></li>
-	<ul>
-
-		<li><a href="#usage">Usage</a></li>
-		<li><a href="#methods">Methods</a></li>
-	</ul>
-
-	<li><a href="#limitations">LIMITATIONS</a></li>
-	<ul>
-
-		<li><a href="#unsupported_validate_args_features">Unsupported <strong>validate.args</strong> features</a></li>
-		<li><a href="#performance">Performance</a></li>
-	</ul>
-
-	<li><a href="#author">AUTHOR</a></li>
-	<li><a href="#copyright_and_license">COPYRIGHT AND LICENSE</a></li>
+<ul id="index">
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#Usage">Usage</a></li>
+      <li><a href="#Methods">Methods</a></li>
+    </ul>
+  </li>
+  <li><a href="#LIMITATIONS">LIMITATIONS</a>
+    <ul>
+      <li><a href="#Unsupported-validate.args-features">Unsupported validate.args features</a></li>
+      <li><a href="#Performance">Performance</a></li>
+    </ul>
+  </li>
+  <li><a href="#AUTHOR">AUTHOR</a></li>
+  <li><a href="#COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</a></li>
 </ul>
 
-<hr name="index" />
-</div>
-<!-- INDEX END -->
+<h1 id="NAME">NAME</h1>
 
-<p>
-</p>
-<h1><a name="name">NAME</a></h1>
 <p>validate.inplace - validate elements in a data structure during assignment</p>
-<p>
-</p>
-<hr />
-<h1><a name="synopsis">SYNOPSIS</a></h1>
-<pre>
-  -- load packages
-  va = require('validate.args')
-  vi = require('validate.inplace' )</pre>
-<pre>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>  -- load packages
+  va = require(&#39;validate.args&#39;)
+  vi = require(&#39;validate.inplace&#39; )
+
   -- define a validation specification (see docs for validate.args)
-  spec = { foo = { type = 'posint' } }</pre>
-<pre>
+  spec = { foo = { type = &#39;posint&#39; } }
+
   -- construct the inplace validation object
-  vio = vi:new( 'test', spec, va:new() )</pre>
-<pre>
+  vio = vi:new( &#39;test&#39;, spec, va:new() )
+
   -- create a more user friendly table to play with
-  test = vio:proxy()</pre>
-<pre>
-  -- assign something that's legal.
-  test.foo = 3</pre>
-<pre>
-  -- assign something that's not legal; this'll throw an error
-  test.foo = -3</pre>
-<pre>
+  test = vio:proxy()
+
+  -- assign something that&#39;s legal.
+  test.foo = 3
+
+  -- assign something that&#39;s not legal; this&#39;ll throw an error
+  test.foo = -3
+
   -- use the value
-  if 3 == test.foo then print (&quot;3!&quot; ) end</pre>
-<pre>
+  if 3 == test.foo then print (&quot;3!&quot; ) end
+
   -- create an independent standard Lua data structure
-  copy = vio:copy()</pre>
-<p>
-</p>
-<hr />
-<h1><a name="description">DESCRIPTION</a></h1>
-<p><strong>validate.inplace</strong> makes it easy to provide instantaneous feedback to
-users when they assign an incorrect value to an element in a data
-structure.</p>
-<p>Traditional validation of data occurs after a data structure has
-been created and passed into a validation routine.  At that point the
-user can only be notified of which element in the data structure is
-invalid.  It'd be much more useful if the user was notified of where
-in their <em>code</em> the error was made.</p>
-<p>This class creates a proxy data structure which allows the validation
-of elements upon assignment to them.</p>
-<p>Validation is performed by <strong>validate.args</strong>.</p>
-<p>
-</p>
-<h2><a name="usage">Usage</a></h2>
+  copy = vio:copy()</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p><b>validate.inplace</b> makes it easy to provide instantaneous feedback to users when they assign an incorrect value to an element in a data structure.</p>
+
+<p>Traditional validation of data occurs after a data structure has been created and passed into a validation routine. At that point the user can only be notified of which element in the data structure is invalid. It&#39;d be much more useful if the user was notified of where in their <i>code</i> the error was made.</p>
+
+<p>This class creates a proxy data structure which allows the validation of elements upon assignment to them.</p>
+
+<p>Validation is performed by <b>validate.args</b>.</p>
+
+<h2 id="Usage">Usage</h2>
+
 <ol>
-<li>
-<p>Create a validation specification table (see the <strong>validate.args</strong>
-docs).  As this is a validation of a table, only named elements can be
-validated, so the specification table will look like</p>
-<pre>
-  spec = { name_of_elem1 = { spec for elem1 },
-           name_of_elem2 = { sepc for elem2 } }</pre>
+
+<li><p>Create a validation specification table (see the <b>validate.args</b> docs). As this is a validation of a table, only named elements can be validated, so the specification table will look like</p>
+
+<pre><code>  spec = { name_of_elem1 = { spec for elem1 },
+           name_of_elem2 = { sepc for elem2 } }</code></pre>
+
 </li>
-<li>
-<p>Create a <strong>validate.args</strong> validation object and customize it as
-necessary:</p>
-<pre>
-  vao = require( 'validate.args'):new()</pre>
+<li><p>Create a <b>validate.args</b> validation object and customize it as necessary:</p>
+
+<pre><code>  vao = require( &#39;validate.args&#39;):new()</code></pre>
+
 </li>
-<li>
-<p>Create the <strong>validate.inplace</strong> object:</p>
-<pre>
-  vio = vi:new( 'config', spec, vao )</pre>
+<li><p>Create the <b>validate.inplace</b> object:</p>
+
+<pre><code>  vio = vi:new( &#39;config&#39;, spec, vao )</code></pre>
+
 </li>
-<li>
-<p>Retrieve and expose the proxy data structure:</p>
-<pre>
-  config = vio:proxy();</pre>
+<li><p>Retrieve and expose the proxy data structure:</p>
+
+<pre><code>  config = vio:proxy();</code></pre>
+
 </li>
 </ol>
-<p>At this point <code>config</code> is a Lua table which can be assigned to and
-read from.  However, none of the Lua functions used to traverse a
-table (such as <strong>pair</strong>, <strong>next</strong>, etc) will be of much use.  To use
-those you'll need to make a copy of the table (using the <strong>copy()</strong>
-method) and traverse the copy.</p>
-<p>
-</p>
-<h2><a name="methods">Methods</a></h2>
-<dl>
-<dt><strong><a name="new" class="item">new</a></strong></dt>
 
+<p>At this point <code>config</code> is a Lua table which can be assigned to and read from. However, none of the Lua functions used to traverse a table (such as <b>pair</b>, <b>next</b>, etc) will be of much use. To use those you&#39;ll need to make a copy of the table (using the <b>copy()</b> method) and traverse the copy.</p>
+
+<h2 id="Methods">Methods</h2>
+
+<dl>
+
+<dt id="new">new</dt>
 <dd>
-<pre>
-  obj = vi:new( name, spec, vao )</pre>
-<p>Create a <strong>validate.inplace</strong> object.  This object administers the
-storage and validation of the data, as well as the proxy data structure
-presented to the user.</p>
+
+<pre><code>  obj = vi:new( name, spec, vao )</code></pre>
+
+<p>Create a <b>validate.inplace</b> object. This object administers the storage and validation of the data, as well as the proxy data structure presented to the user.</p>
+
 <p>The following parameters are required:</p>
+
 <dl>
-<dt><strong><a name="name" class="item">name</a></strong></dt>
 
+<dt id="name">name</dt>
 <dd>
-<p>The name assigned to the root of the data structure, used in error
-messages.  Typically this is the name of the table to which the top
-level proxy table will be assigned (via the <strong>proxy()</strong> method):</p>
-<pre>
-  vio = vi:new( 'config', spec, va:new() )
-  config = vio:proxy()</pre>
+
+<p>The name assigned to the root of the data structure, used in error messages. Typically this is the name of the table to which the top level proxy table will be assigned (via the <b>proxy()</b> method):</p>
+
+<pre><code>  vio = vi:new( &#39;config&#39;, spec, va:new() )
+  config = vio:proxy()</code></pre>
+
 </dd>
-<dt><strong><a name="spec" class="item">spec</a></strong></dt>
-
+<dt id="spec">spec</dt>
 <dd>
-<p>This is a <strong>validate.args</strong> validation specification table.  Its
-structure must follow the &quot;named argument layout&quot; structure
-as documented in the <strong>validate.args</strong> docs.</p>
+
+<p>This is a <b>validate.args</b> validation specification table. Its structure must follow the &quot;named argument layout&quot; structure as documented in the <b>validate.args</b> docs.</p>
+
 </dd>
-<dt><strong><a name="vao" class="item">vao</a></strong></dt>
-
+<dt id="vao">vao</dt>
 <dd>
-<p>This is a <strong>validate.args</strong> object.  It is used along with the
-specification to validate elements.</p>
+
+<p>This is a <b>validate.args</b> object. It is used along with the specification to validate elements.</p>
+
 </dd>
 </dl>
-</dd>
-<dt><strong><a name="proxy" class="item">proxy</a></strong></dt>
 
-<dd>
-<pre>
-  table = vio:proxy()</pre>
-<p>This returns a table to which data may be written to and read from.
-As it is a proxy, attempts to traverse it will be unfulfilling.</p>
 </dd>
-<dt><strong><a name="copy" class="item">copy</a></strong></dt>
-
+<dt id="proxy">proxy</dt>
 <dd>
-<pre>
-  copy = vio:copy()</pre>
-<p>Create a copy of the data structure managed by the <strong>validate.inplace</strong>
-object.  Unlike the structure returned by the <strong>proxy()</strong> method, the
-structure returned by <strong>copy()</strong> may be traversed using the standard
-Lua functions.  Changes to it will not be reflected in the data stored
-in the <strong>validate.inplace</strong> object (nor will changes in the object
-change this data structure).</p>
+
+<pre><code>  table = vio:proxy()</code></pre>
+
+<p>This returns a table to which data may be written to and read from. As it is a proxy, attempts to traverse it will be unfulfilling.</p>
+
+</dd>
+<dt id="copy">copy</dt>
+<dd>
+
+<pre><code>  copy = vio:copy()</code></pre>
+
+<p>Create a copy of the data structure managed by the <b>validate.inplace</b> object. Unlike the structure returned by the <b>proxy()</b> method, the structure returned by <b>copy()</b> may be traversed using the standard Lua functions. Changes to it will not be reflected in the data stored in the <b>validate.inplace</b> object (nor will changes in the object change this data structure).</p>
+
 </dd>
 </dl>
-<p>
-</p>
-<hr />
-<h1><a name="limitations">LIMITATIONS</a></h1>
-<p>
-</p>
-<h2><a name="unsupported_validate_args_features">Unsupported <strong>validate.args</strong> features</a></h2>
+
+<h1 id="LIMITATIONS">LIMITATIONS</h1>
+
+<h2 id="Unsupported-validate.args-features">Unsupported <b>validate.args</b> features</h2>
+
 <ul>
-<li>
-<p><strong>validate.inplace</strong> cannot handle specifications which use <strong>vtable</strong>
-functions or mutating validation specifications.</p>
+
+<li><p><b>validate.inplace</b> cannot handle specifications which use <b>vtable</b> functions or mutating validation specifications.</p>
+
 </li>
-<li>
-<p><code>precall</code> and <code>postcall</code> functions are called only for non-table
-data elements.  This has not been extensively tested, so don't rely
-upon them.</p>
+<li><p><code>precall</code> and <code>postcall</code> functions are called only for non-table data elements. This has not been extensively tested, so don&#39;t rely upon them.</p>
+
 </li>
 </ul>
-<p>
-</p>
-<h2><a name="performance">Performance</a></h2>
-<p>This class is not built for speed.  It imposes significant overhead
-when both setting and retrieving elements within a data structure. It
-was designed for validation of configuration data which is typically
-done once.</p>
+
+<h2 id="Performance">Performance</h2>
+
+<p>This class is not built for speed. It imposes significant overhead when both setting and retrieving elements within a data structure. It was designed for validation of configuration data which is typically done once.</p>
+
 <p>Some of things that happen under the hood:</p>
+
 <ol>
-<li>
-<p><strong>validate.args</strong> is invoked whenever a value is set</p>
+
+<li><p><b>validate.args</b> is invoked whenever a value is set</p>
+
 </li>
-<li>
-<p>The data structure uses proxy tables to track accesses to the data.</p>
+<li><p>The data structure uses proxy tables to track accesses to the data.</p>
+
 </li>
-<li>
-<p>Assignment of a nested data structure to an element requires a recursive
-descent through the nested table if some or all levels of the nested
-structure are to be validated.</p>
+<li><p>Assignment of a nested data structure to an element requires a recursive descent through the nested table if some or all levels of the nested structure are to be validated.</p>
+
 </li>
 </ol>
-<p>To improve read performance, use the <strong>copy()</strong> method to create a
-non-proxied version of the data structure.  It will be detached from
-the proxied version (so changes to either will not be reflected in the
-other).</p>
-<p>
-</p>
-<hr />
-<h1><a name="author">AUTHOR</a></h1>
-<p>Diab Jerius, &lt;<a href="mailto:djerius@cfa.harvard.edu">djerius@cfa.harvard.edu</a>&gt;</p>
-<p>
-</p>
-<hr />
-<h1><a name="copyright_and_license">COPYRIGHT AND LICENSE</a></h1>
+
+<p>To improve read performance, use the <b>copy()</b> method to create a non-proxied version of the data structure. It will be detached from the proxied version (so changes to either will not be reflected in the other).</p>
+
+<h1 id="AUTHOR">AUTHOR</h1>
+
+<p>Diab Jerius, &lt;djerius@cfa.harvard.edu&gt;</p>
+
+<h1 id="COPYRIGHT-AND-LICENSE">COPYRIGHT AND LICENSE</h1>
+
 <p>Copyright (C) 2011 by the Smithsonian Astrophysical Observatory</p>
-<p>This software is released under the GNU General Public License.
-You may find a copy at <a href="http://www.fsf.org/copyleft/gpl.html">http://www.fsf.org/copyleft/gpl.html</a>.</p>
+
+<p>This software is released under the GNU General Public License. You may find a copy at <a href="http://www.fsf.org/copyleft/gpl.html">http://www.fsf.org/copyleft/gpl.html</a>.</p>
+
 
 </body>
 
 </html>
+
+
